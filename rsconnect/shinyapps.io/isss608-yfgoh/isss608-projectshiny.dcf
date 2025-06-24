@@ -5,6 +5,8 @@ account: isss608-yfgoh
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14982871
-bundleId: 10509977
-url: https://isss608-yfgoh.shinyapps.io/isss608-projectshiny/
+bundleId: 10511395
+url: https://oceanusfolk.shinyapps.io/isss608-projectshiny/
 version: 1
+asMultiple: FALSE
+asStatic: FALSE
