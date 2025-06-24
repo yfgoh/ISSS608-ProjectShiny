@@ -121,7 +121,7 @@ ui <- navbarPage(
            )
   ),
   
-  tabPanel("Oceanus Folk Rising Star",
+  tabPanel("Oceanus Folk's Rising Star",
            sidebarLayout(
              sidebarPanel(
                selectInput("selected_artists", "Select Artists to Compare:",
