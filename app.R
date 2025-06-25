@@ -27,6 +27,8 @@ library(kableExtra)
 library(ggiraph)
 library(ggraph)
 library(tidyr)
+library(igraph)
+library(shinyjs)
 
 
 # Data loading and pre-processing
@@ -204,6 +206,108 @@ graph <- tbl_graph(edges = mc1_edges_clean,
                    directed = TRUE)
 
 
+
+# Data Preparation for influenced table
+
+# Step 1: Get all creator names
+global_creators <- mc1_nodes_clean %>%
+  filter(`Node Type` %in% c("Person", "MusicalGroup"))
+
+# Step 2: Get all outgoing edges from these creators
+creator_out_edges <- mc1_edges_clean %>%
+  filter(from %in% global_creators$name, `Edge Colour` == "Creator Of")
+
+# Step 3: Get all songs made by creators
+creator_music <- mc1_nodes_clean %>%
+  filter(name %in% creator_out_edges$to)
+
+# Step 4: Get all outgoing edges from songs
+creator_songs_out_edges <- mc1_edges_clean %>%
+  filter(from %in% creator_music$name, `Edge Colour` == "Influenced By")
+
+# Step 5: First join to get creator names (from)
+creators <- creator_out_edges %>%
+  left_join(mc1_nodes_clean, by = c("from" = "name")) %>%
+  select(from, to, node_name, `Node Type`) %>%
+  rename(creator_from = from, creator_name = node_name, creator_node_type = `Node Type`)
+
+# Step 6: Second join to get song names (to)
+creator_and_songs <- creators %>%
+  left_join(mc1_nodes_clean, by = c("to" = "name")) %>%
+  select(creator_from, creator_name, creator_node_type, to, node_name, release_date, genre, notable) %>%
+  rename(song_name = node_name, song_genre = genre, song_to = to) %>%
+  distinct()
+
+# Step 7: Third join to get song's influenced genre (to)
+creator_and_songs_and_influenced_by <- creator_and_songs %>%
+  left_join(creator_songs_out_edges %>% select(from, to), by = c("song_to" = "from"), relationship = "many-to-many") %>%
+  left_join(mc1_nodes_clean %>% select(name, genre), by = c("to" = "name")) %>%
+  rename(influenced_by_genre = genre, influenced_by = to) %>%
+  distinct()
+
+# Step 8: Fourth join to get influenced song's creator
+creator_and_songs_and_influenced_by_creator <- creator_and_songs_and_influenced_by %>%
+  left_join(creator_out_edges %>% select(from, to), by = c("influenced_by" = "to"), relationship = "many-to-many") %>%
+  rename(influenced_by_creator = from)
+
+
+
+
+# Data Preparation influence table
+
+# Step 4: Get all incoming edges from songs (music and collaborators)
+creator_songs_in_edges <- mc1_edges_clean %>%
+  filter(to %in% creator_music$name)
+
+# Step 5: First join to get creator names (from)
+creators <- creator_out_edges %>%
+  left_join(mc1_nodes_clean, by = c("from" = "name")) %>%
+  select(from, to, node_name, `Node Type`) %>%
+  rename(creator_name = node_name, creator_node_type = `Node Type`)
+
+# Step 6: Second join to get song names (to)
+creator_and_songs <- creators %>%
+  left_join(mc1_nodes_clean, by = c("to" = "name")) %>%
+  select(from, creator_name, creator_node_type, to, node_name, release_date, genre, notable) %>%
+  rename(creator_from = from, song_name = node_name, creator_release_date = release_date, song_genre = genre, song_to = to) %>%
+  distinct()
+
+# Step 7: Third join to get influenced songs / collaborators
+creator_and_songs_and_influences <- creator_and_songs %>%
+  left_join(creator_songs_in_edges %>% select(from, to, `Edge Colour`), by = c("song_to" = "to"), relationship = "many-to-many") %>%
+  left_join(mc1_nodes_clean %>% select(name, genre, node_name, release_date), by = c("from" = "name")) %>%
+  rename(influence_genre = genre, infuence_music_collaborate = from, infuence_music_collaborate_name = node_name, influence_release_date = release_date) %>%
+  distinct()
+
+# Step 8: Fourth join to get influenced song's creator
+creator_and_songs_and_influences_and_creators <- creator_and_songs_and_influences %>%
+  left_join(creator_out_edges %>% select(from, to), by = c("infuence_music_collaborate" = "to"), relationship = "many-to-many") %>%
+  rename(influence_creator = from)
+
+# Step 9: Fifth join to get influenced song's creator name
+creator_and_songs_and_influences_and_creators <- creator_and_songs_and_influences_and_creators %>%
+  left_join(mc1_nodes_clean %>% select(name, node_name), by = c("influence_creator" = "name")) %>%
+  rename(influence_creator_name = node_name)
+
+# Step 10: Add release date for collaborators
+creator_and_songs_and_influences_and_creators_collaborate <- creator_and_songs_and_influences_and_creators %>%
+  mutate(
+    influence_release_date = case_when(
+      `Edge Colour` == "Creator Of" ~ creator_release_date,
+      TRUE ~ influence_release_date  # Keeps original value if not "Creator Of"
+    ),
+    influence_creator = case_when(   # A collaborator can also be considered influenced
+      `Edge Colour` == "Creator Of" ~ infuence_music_collaborate,
+      TRUE ~ influence_creator
+    )
+  )
+
+all_genre <- creator_music$genre %>%
+  unique()
+
+all_artists <- global_creators$node_name %>%
+  unique()
+
 website_theme <- bs_theme(
   bootswatch = "minty",
   primary = "#2C3E50",
@@ -245,7 +349,7 @@ ui <- navbarPage(
         padding-bottom: 10px !important;
       }"))
   ),
-  
+  ############################### Question 1 #######################################
   tabPanel("Profile of Sailor's Career",
            tabsetPanel(
              tabPanel("Sailor's Work", 
@@ -265,11 +369,10 @@ ui <- navbarPage(
                         )
                       )
              ),
+             ######################## Question 1a ##############################
              tabPanel("Primary Influences",
                       sidebarLayout(
                         sidebarPanel(
-                          sliderInput("degree_sep", "Degree of Separation:", min = 1, max = 20,
-                                      value = c(1, 20), step = 1, sep = "", animate = TRUE),
                           selectInput("node_type_filter", "Filter Node Types:",
                                       choices = c("Song", "Album", "MusicalGroup", "Person"),
                                       selected = c("Song", "Album"), multiple = TRUE),
@@ -278,16 +381,16 @@ ui <- navbarPage(
                                       selected = c("Creator Of", "Influenced By"), multiple = TRUE)
                         ),
                         mainPanel(
-                          plotOutput("influencedByPlot", height = "400px"),
+                          withSpinner(girafeOutput("influencedByPlot", width = "100%", height = "600px")),
+                          tags$hr(),
                           htmlOutput("insight_1a")
                         )
                       )
              ),
+             ######################## Question 1b ##############################
              tabPanel("Collaborations & her Influences",
                       sidebarLayout(
                         sidebarPanel(
-                          sliderInput("degree_sep", "Degree of Separation:", min = 1, max = 20,
-                                      value = c(1, 20), step = 1, sep = "", animate = TRUE),
                           selectInput("node_type_filter", "Filter Node Types:",
                                       choices = c("Song", "Album", "MusicalGroup", "Person"),
                                       selected = c("Song", "Album"), multiple = TRUE),
@@ -296,32 +399,35 @@ ui <- navbarPage(
                                       selected = c("Creator Of", "Influenced By"), multiple = TRUE)
                         ),
                         mainPanel(
-                          visNetworkOutput("collabInfluenceNetwork", height = "500px"),
+                          withSpinner(girafeOutput("collabInfluenceNetwork", width = "100%", height = "600px")),
+                          tags$hr(),
                           htmlOutput("insight_1b")
                         )
                       )
              ),
+             ######################## Question 1c ##############################
              tabPanel("Impact on Oceanus Folk Collaborators",
                       sidebarLayout(
                         sidebarPanel(
-                          sliderInput("degree_sep", "Degree of Separation:", min = 1, max = 20,
-                                      value = c(1, 20), step = 1, sep = "", animate = TRUE),
-                          selectInput("node_type_filter", "Filter Node Types:",
-                                      choices = c("Song", "Album", "MusicalGroup", "Person"),
-                                      selected = c("Song", "Album"), multiple = TRUE),
-                          selectInput("edge_type_filter", "Filter Edge Types:",
-                                      choices = c("Creator Of", "Influenced By", "Member Of"),
-                                      selected = c("Creator Of", "Influenced By"), multiple = TRUE)
+                          sliderInput("degree_sep", "Degree of Separation:", min = 1, max = 13,
+                                      value = 13, step = 1, sep = "", animate = TRUE),
+                          checkboxInput(
+                            inputId = "include_infinite",
+                            label = "Include Infinite (Unreachable) Nodes",
+                            value = TRUE
+                          ),
                         ),
                         mainPanel(
-                          plotOutput("broadInfluencePlot", height = "400px"),
+                          withSpinner(girafeOutput("broadInfluencePlot", width = "100%", height = "600px")),
+                          tags$hr(),
                           htmlOutput("insight_1c")
                         )
                       )
              )
            )
   ),
-  
+
+  ############################### Question 2 #######################################
   tabPanel("Influence of Oceanus Folk",
            tabsetPanel(
              tabPanel("Trajectory over Time",
@@ -388,26 +494,26 @@ ui <- navbarPage(
            )
   ),
   
+  ############################### Question 3 #######################################
   tabPanel("Oceanus Folk's Rising Star",
            tabsetPanel(
              tabPanel("Artist's Star Factor",
                       sidebarLayout(
                         sidebarPanel(
-                          checkboxGroupInput("filter_genres_3a", "Filter by Genre:", 
-                                             choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
+                          selectInput("filter_genres_3a", "Filter by Genre:",
+                                      choices = c(all_genre),
+                                      selected = c(all_genre), multiple = TRUE),
                           sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
                                       value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
-                          selectInput("selected_artists_3a", "Select Artists to Compare:",
-                                      choices = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-                                      selected = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-                                      multiple = TRUE)
                         ),
                         mainPanel(
-                          plotOutput("careerComparePlot", height = "400px"),
-                          htmlOutput("insight_3a")
+                          withSpinner(uiOutput("predictedStars_3a")),
+                          tags$hr(),
+                          htmlOutput("insight_1c")
                         )
                       )
              ),
+             ######################## Question 3a ##############################
              tabPanel("Career Trajectories & Influence Comparison",
                       sidebarLayout(
                         sidebarPanel(
@@ -415,17 +521,26 @@ ui <- navbarPage(
                                              choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
                           sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
                                       value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
-                          selectInput("selected_artists_3a", "Select Artists to Compare:",
-                                      choices = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-                                      selected = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-                                      multiple = TRUE)
+                          selectInput("selected_artists_3b_1", "Select Artist 1 to Compare:",
+                                      choices = c(all_artists),
+                                      selected = c("Sailor Shift"),
+                                      multiple = FALSE),
+                          selectInput("selected_artists_3b_2", "Select Artist 2 to Compare:",
+                                      choices = c(all_artists),
+                                      selected = c("Jay Walters"),
+                                      multiple = FALSE),
+                          selectInput("selected_artists_3b_3", "Select Artist 3 to Compare:",
+                                      choices = c(all_artists),
+                                      selected = c("Min Fu"),
+                                      multiple = FALSE)
                         ),
                         mainPanel(
-                          tableOutput("predictedStars_3b"),
+                          plotOutput("predictedStars_3b", height = "400px"),
                           htmlOutput("insight_3b")
                         )
                       )
              ),
+             ######################## Question 3b ##############################
              tabPanel("Emerging Stars of Oceanus Folk",
                       sidebarLayout(
                         sidebarPanel(
@@ -461,12 +576,6 @@ server <- function(input, output, session) {
       hierarchy = c("Genre", "Mentor", "Artist"),
       root = "Oceanus Folk"
     )
-  })
-  
-  output$collabInfluenceNetwork <- renderVisNetwork({
-    nodes <- data.frame(id = 1:4, label = c("Sailor", "Ivy Echos", "Node1", "Node2"))
-    edges <- data.frame(from = c(1, 1, 2), to = c(2, 3, 4))
-    visNetwork(nodes, edges)
   })
   
   # Server-side reactive output for sailorWorkPlot
@@ -579,6 +688,524 @@ server <- function(input, output, session) {
     # Return girafe object
     girafe(ggobj = g, width_svg = 7, height_svg = 6)
   })
+  
+  observe({
+    if (input$degree_sep < 13) {
+      updateCheckboxInput(
+        session,
+        inputId = "include_infinite",
+        value = FALSE
+      )
+      shinyjs::disable("include_infinite")
+    } else {
+      shinyjs::enable("include_infinite")
+    }
+  })
+  
+  ##############################################################################
+  
+  ############################### Question 1a ##################################
+
+  # Server-side reactive output for sailorWorkPlot
+  output$influencedByPlot <- renderGirafe({
+      # Data Preparation
+    
+    # Step 1: Get the node of the sailor
+    sailor_node <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_name == "Sailor Shift") %>%
+      pull(creator_from) %>%
+      unique()
+    
+    # Step 2: Get the songs that the creator produced
+    sailor_songs <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_from == sailor_node,
+             creator_from != influenced_by) %>%
+      pull(song_to)
+    
+    # Step 3: Get the songs they have influenced by
+    sailor_songs_influenced <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_from == sailor_node,
+             creator_from != influenced_by) %>%
+      pull(influenced_by)
+    
+    # Step 5: Get the creators of the influenced by songs
+    sailor_songs_influenced_creators <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_from == sailor_node,
+             creator_from != influenced_by) %>%
+      pull(influenced_by_creator)
+    
+    # Step 5: Combine all relevant node names
+    all_node_names <- unique(c(
+      sailor_node,
+      sailor_songs,
+      sailor_songs_influenced,
+      sailor_songs_influenced_creators
+    ))
+    
+    # Step 6: Filter graph to relevant nodes only
+    sub_graph <- graph %>%
+      filter(name %in% all_node_names)
+    
+    
+    
+    # Visualisation
+    
+    g <- sub_graph %>%
+      ggraph(layout = "fr") + 
+      geom_edge_fan(
+        aes(
+          edge_colour = `Edge Colour`,
+          start_cap = circle(1, 'mm'),
+          end_cap = circle(1, 'mm')
+        ),
+        arrow = arrow(length = unit(1, 'mm')),
+        alpha = 0.3
+      ) +
+      geom_point_interactive(
+        aes(
+          x = x,
+          y = y,
+          data_id = name,
+          colour = `Node Colour`,
+          shape = `Node Type`,
+          size = ifelse(node_name %in% c("Sailor Shift", "Wei Zhao"), 3, 1),
+          tooltip = case_when(
+            `Node Type` == "Album" ~ sprintf(
+              "%s<br/>%s<br/>Notable: %s<br/>(%s)", node_name, genre, notable, release_date
+            ),
+            `Node Type` == "Song" ~ sprintf(
+              "%s<br/>%s<br/>Notable: %s<br/>(%s)<br/>Single: %s", node_name, genre, notable, release_date, single
+            ),
+            TRUE ~ sprintf("%s", node_name)
+          )
+        ),
+        show.legend = c(size = FALSE)
+      )+ 
+      geom_node_text(
+        aes(
+          label = ifelse(node_name == "Sailor Shift", "Sailor Shift",
+                         ifelse(node_name == "Wei Zhao", "Wei Zhao", NA))
+        ),
+        fontface = "bold",
+        size = 2.5,
+        colour = 'red',
+        show.legend = FALSE
+      ) +
+      scale_shape_manual(
+        name = "Node Type",
+        values = c(
+          "Album" = 16,
+          "MusicalGroup" = 15,
+          "Person" = 17,
+          "Song" = 10
+        )
+      ) +
+      scale_edge_colour_manual(
+        name = "Edge Colour",
+        values = c(
+          `Creator Of` = "#47D45A",
+          `Influenced By` = "#FF5757",
+          `Member Of` = "#CF57FF"
+        )
+      ) +
+      scale_colour_manual(
+        name = "Node Colour",
+        values = c(
+          "Musician" = "grey50",
+          "Oceanus Folk" = "#0027EA",
+          "Other Genre" = "#A45200"
+        )
+      ) +
+      theme_graph() +
+      theme(legend.text = element_text(size = 6),
+            legend.title = element_text(size = 9)) +
+      scale_size_identity()
+    
+    girafe(ggobj = g, width_svg = 7, height_svg = 6)
+    })
+  
+  
+  ##############################################################################
+  
+  ############################### Question 1b ##################################
+  
+  output$collabInfluenceNetwork <- renderGirafe({
+    # Data Preparation
+    
+    # Step 1: Get the node of the sailor
+    sailor_node <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_name == "Sailor Shift") %>%
+      pull(creator_from) %>%
+      unique()
+    
+    # Step 2: Get the songs that the sailor produced
+    sailor_songs <- creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(creator_from == sailor_node,
+             infuence_music_collaborate != sailor_node) %>%
+      pull(song_to)
+    
+    # Step 3: Get the songs they have influenced / artists they collaborate with
+    sailor_songs_collaborate_influence <- creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(creator_from == sailor_node,
+             infuence_music_collaborate != sailor_node) %>%
+      pull(infuence_music_collaborate)
+    
+    # Step 4: Get the songs they have influenced
+    sailor_songs_influence <- creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(creator_from == sailor_node,
+             infuence_music_collaborate != sailor_node,
+             `Edge Colour` == "Influenced By") %>%
+      pull(infuence_music_collaborate)
+    
+    # Step 5: Get the influenced creators of the influenced songs
+    sailor_songs_influence_creators <- creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(creator_from == sailor_node,
+             influence_creator != sailor_node,
+             !is.na(influence_creator),
+             infuence_music_collaborate %in% sailor_songs_influence) %>%
+      pull(influence_creator)
+    
+    all_nodes <- unique(c(sailor_node, 
+                          sailor_songs, 
+                          sailor_songs_collaborate_influence,
+                          sailor_songs_influence_creators))
+    
+    # Create subgraph
+    sub_graph <- graph %>%
+      filter(name %in% all_nodes)
+    
+    
+    
+    # Visualisation
+    
+    g <- sub_graph %>%
+      ggraph(layout = "fr") + 
+      geom_edge_fan(
+        aes(
+          edge_colour = `Edge Colour`,
+          start_cap = circle(1, 'mm'),
+          end_cap = circle(1, 'mm')
+        ),
+        arrow = arrow(length = unit(1, 'mm')),
+        alpha = 0.3
+      ) +
+      geom_point_interactive(
+        aes(
+          x = x,
+          y = y,
+          data_id = name,
+          colour = `Node Colour`,
+          shape = `Node Type`,
+          size = ifelse(node_name == "Sailor Shift", 3, 1),
+          tooltip = case_when(
+            `Node Type` == "Album" ~ sprintf(
+              "%s<br/>%s<br/>Notable: %s<br/>(%s)", node_name, genre, notable, release_date
+            ),
+            `Node Type` == "Song" ~ sprintf(
+              "%s<br/>%s<br/>Notable: %s<br/>(%s)<br/>Single: %s", node_name, genre, notable, release_date, single
+            ),
+            TRUE ~ sprintf("%s", node_name)
+          )
+        ),
+        show.legend = c(size = FALSE)
+      )+ 
+      geom_node_text(
+        aes(
+          label = ifelse(node_name == "Sailor Shift", "Sailor Shift", NA)
+        ),
+        fontface = "bold",
+        size = 2.5,
+        colour = 'red',
+        show.legend = FALSE
+      ) +
+      scale_shape_manual(
+        name = "Node Type",
+        values = c(
+          "Album" = 16,
+          "MusicalGroup" = 15,
+          "Person" = 17,
+          "Song" = 10
+        )
+      ) +
+      scale_edge_colour_manual(
+        name = "Edge Colour",
+        values = c(
+          `Creator Of` = "#47D45A",
+          `Influenced By` = "#FF5757",
+          `Member Of` = "#CF57FF"
+        )
+      ) +
+      scale_colour_manual(
+        name = "Node Colour",
+        values = c(
+          "Musician" = "grey50",
+          "Oceanus Folk" = "#0027EA",
+          "Other Genre" = "#A45200"
+        )
+      ) +
+      theme_graph() +
+      theme(legend.text = element_text(size = 6),
+            legend.title = element_text(size = 9)) +
+      scale_size_identity()
+    
+    girafe(ggobj = g, width_svg = 7, height_svg = 6)
+  })
+    
+  ##############################################################################
+  
+  ############################### Question 1c ##################################
+  
+  # Server-side reactive output for broadInfluencePlot
+  
+  output$broadInfluencePlot <- renderGirafe({
+    # Data Preparation
+    
+    # Step 1: Get the node of the sailor
+    sailor_node <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_name == "Sailor Shift") %>%
+      pull(creator_from) %>%
+      unique()
+    
+    genre_creators = creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(song_genre == "Oceanus Folk") %>%
+      pull(creator_from)
+    
+    genre_music = creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(song_genre == "Oceanus Folk") %>%
+      pull(song_to)
+    
+    genre_all_nodes <- unique(c(genre_creators,
+                                genre_music))
+    
+    # Create subgraph
+    sub_graph <- graph %>%
+      filter(name %in% genre_all_nodes)
+    
+    # 4. Convert to igraph
+    sub_igraph <- as.igraph(sub_graph)
+    
+    # 5. Compute distances
+    artist_id <- which(V(sub_igraph)$name == sailor_node)
+    distances <- distances(sub_igraph, v = artist_id, mode = "all")
+    
+    # 6. Create distance dataframe
+    distance_df <- tibble(
+      name = V(sub_igraph)$name,
+      degree = as.numeric(distances[1, ])
+    ) %>%
+      mutate(degree = ifelse(is.infinite(degree), NA, degree))
+    
+    # 7. Filter based on slider and checkbox
+    selected_degree <- input$degree_sep
+    include_inf <- input$include_infinite
+    
+    # Override checkbox if selected degree is below 13
+    if (selected_degree < 13) {
+      include_inf <- FALSE
+    }
+    
+    if (include_inf) {
+      filtered_nodes <- distance_df %>%
+        filter(is.na(degree) | degree <= selected_degree) %>%
+        pull(name)
+    } else {
+      filtered_nodes <- distance_df %>%
+        filter(!is.na(degree) & degree <= selected_degree) %>%
+        pull(name)
+    }
+    
+    filtered_nodes <- unique(c(filtered_nodes, sailor_node))
+    
+    # Build filtered graph
+    filtered_graph <- sub_graph %>%
+      filter(name %in% filtered_nodes) %>%
+      activate(nodes) %>%
+      left_join(distance_df, by = "name")
+    
+    # Visualisation
+    
+    g <- filtered_graph %>%
+      ggraph(layout = "kk") + 
+      geom_edge_fan(
+        aes(
+          edge_colour = `Edge Colour`,
+          start_cap = circle(1, 'mm'),
+          end_cap = circle(1, 'mm')
+        ),
+        arrow = arrow(length = unit(1, 'mm')),
+        alpha = 0.3
+      ) +
+      geom_point_interactive(
+        aes(
+          x = x,
+          y = y,
+          data_id = name,
+          colour = degree,
+          shape = `Node Type`,
+          size = ifelse(node_name == "Sailor Shift", 3, 1),
+          tooltip = case_when(
+            `Node Type` == "Album" ~ sprintf(
+              "%s<br/>%s<br/>Notable: %s<br/>(%s)<br/>Degree: %s", node_name, genre, notable, release_date, degree
+            ),
+            `Node Type` == "Song" ~ sprintf(
+              "%s<br/>%s<br/>Notable: %s<br/>(%s)<br/>Single: %s<br/>Degree: %s", node_name, genre, notable, release_date, single, degree
+            ),
+            TRUE ~ sprintf("%s<br/>Degree: %s", node_name, degree)
+          )
+        ),
+        show.legend = c(size = FALSE)
+      )+ 
+      geom_node_text(
+        aes(
+          label = ifelse(node_name == "Sailor Shift", "Sailor Shift", NA)
+        ),
+        fontface = "bold",
+        size = 3,
+        colour = 'red',
+        show.legend = FALSE
+      ) +
+      scale_shape_manual(
+        name = "Node Type",
+        values = c(
+          "Album" = 16,
+          "MusicalGroup" = 15,
+          "Person" = 17,
+          "Song" = 10
+        )
+      ) +
+      scale_edge_colour_manual(
+        name = "Edge Colour",
+        values = c(
+          `Creator Of` = "#47D45A",
+          `Influenced By` = "#FF5757",
+          `Member Of` = "#CF57FF"
+        )
+      ) +
+      theme_graph() +
+      theme(legend.text = element_text(size = 6),
+            legend.title = element_text(size = 9)) +
+      scale_size_identity() + 
+      scale_color_gradientn(
+        name = "Degree",
+        colours = c("#2E3192", "#FFA757"),
+        values = scales::rescale(c(0, 13)),
+        na.value = "grey50",
+        limits = c(0, 13),
+        breaks = 0:13
+      )
+    
+    girafe(ggobj = g, width_svg = 9, height_svg = 8)
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  ##############################################################################
+  
+  ############################### Question 3 Table ##################################
+  
+  output$predictedStars_3a <- renderUI({
+    
+    # Data Preparation
+    
+    # Step 1: To highlight songs that the creator influence that is not produced by same creator
+    creator_influence_lists <- creator_and_songs_and_influences_and_creators_collaborate %>%
+      group_by(creator_name, creator_node_type, song_to, song_name, creator_release_date, song_genre, notable) %>%
+      distinct () %>%
+      summarize(
+        unique_collaborate = list(unique(na.omit(infuence_music_collaborate[creator_from != influence_creator & `Edge Colour` == "Creator Of"]))),
+        unique_influence_creators = list(unique(na.omit(influence_creator[creator_from != influence_creator & `Edge Colour` == "Influenced By"]))),
+        unique_influence_music = list(unique(na.omit(infuence_music_collaborate[creator_from != influence_creator & !is.na(influence_genre)])))
+      )
+    
+    # Step 2: Aggregate unique influences per creator
+    creator_stats <- creator_influence_lists %>%
+      group_by(creator_name) %>%
+      summarize(
+        total_songs = n_distinct(song_to),
+        notable_hits = sum(notable == TRUE, na.rm = TRUE),
+        collaboration = length(unique(unlist(unique_collaborate))),
+        influence_creators = length(unique(unlist(unique_influence_creators))),
+        collaboration_influence_creator = length(unique(c(unlist(unique_influence_creators),unlist( unique_collaborate)))),
+        influence_music = length(unique(unlist(unique_influence_music)))
+      )
+    
+    # Step 3: Create Scoring Rubric
+    creator_rankings <- creator_stats %>%
+      mutate(
+        # Normalize each metric (0-1 scale)
+        songs_score = (total_songs - min(total_songs)) / (max(total_songs) - min(total_songs)),
+        notable_score = (notable_hits - min(notable_hits)) / (max(notable_hits) - min(notable_hits)),
+        artists_score = (collaboration_influence_creator - min(collaboration_influence_creator)) / (max(collaboration_influence_creator) - min(collaboration_influence_creator)),
+        music_score = (influence_music - min(influence_music)) / (max(influence_music) - min(influence_music)),
+        
+        # Calculate composite score (equal weighting)
+        composite_score = songs_score + notable_score + artists_score + music_score
+      ) %>%
+      arrange(desc(composite_score)) %>%
+      select(creator_name, total_songs, notable_hits, collaboration_influence_creator, influence_music, composite_score)
+    
+    # Step 4: Final Ranked Table
+    final_table <- creator_rankings %>%
+      mutate(
+        Rank = row_number(),
+        `Star Factor` = round(composite_score, 2)
+      ) %>%
+      select(Rank, Artist = creator_name, `Total Music` = total_songs, 
+             `Notable Hits` = notable_hits, `Artist Influ & Colab` = collaboration_influence_creator,
+             `Music Influenced` = influence_music, `Star Factor`)
+    
+    HTML(
+      knitr::kable(final_table, caption = "Artists Ranked by Star Factor") %>%
+        kableExtra::kable_styling("striped", full_width = FALSE) %>%
+        kableExtra::scroll_box(height = "300px")
+    )
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  ##############################################################################
+  
+  ############################### Question 3a ##################################
+  
+  
+  
+  
   
 
 
