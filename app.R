@@ -1,13 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    https://shiny.posit.co/
-#
-
-
 # Load required libraries
 library(shiny)
 library(shinydashboard)
@@ -29,284 +19,12 @@ library(ggraph)
 library(tidyr)
 library(igraph)
 library(shinyjs)
+library(plotly)
+library(networkD3)
+library(htmlwidgets)
 
-
-# Data loading and pre-processing
-
-# Load raw data
-mc1_data <- fromJSON("data/MC1_graph.json")
-
-# Split into nodes and edges
-mc1_nodes_raw <- as_tibble(mc1_data$nodes)
-mc1_edges_raw <- as_tibble(mc1_data$links)
-
-# Add identifying columns
-mc1_nodes_raw <- mc1_nodes_raw %>%
-  mutate(
-    is_sailor = (
-      str_detect(name, regex("sailor shift", ignore_case = TRUE))
-    ) %>% replace_na(FALSE),
-    is_ivy = (
-      str_detect(name, regex("ivy echos", ignore_case = TRUE))
-    ) %>% replace_na(FALSE),
-    is_oceanus_folk = str_detect(genre, regex("oceanus folk", ignore_case = TRUE)) %>%
-      replace_na(FALSE)
-  )
-
-# Convert date fields
-mc1_nodes_raw <- mc1_nodes_raw %>%
-  mutate(across(c(release_date, notoriety_date, written_date),
-                ~as.integer(if_else(`Node Type` %in% c("Song", "Album"), ., NA_character_))))
-
-# Handle duplicates in nodes
-mc1_nodes_tagged <- mc1_nodes_raw %>%
-  mutate(group_key = paste(`Node Type`, name, single, release_date, genre,
-                           notable, written_date, notoriety_date, is_sailor,
-                           is_oceanus_folk, sep = "|"))
-
-# De-duplicate nodes
-mc1_nodes_dedup <- mc1_nodes_tagged %>%
-  group_by(group_key) %>%
-  arrange(desc(!is.na(stage_name))) %>%
-  slice(1) %>%
-  ungroup()
-
-# Handle duplicates in edges
-mc1_edges_raw <- mc1_edges_raw %>%
-  distinct(source, target, `Edge Type`, .keep_all = TRUE) %>%
-  select(!key)
-
-# Restructure nodes for tidygraph compatibility
-mc1_nodes_clean <- mc1_nodes_dedup %>%
-  rename(node_name = name, name = id) %>%
-  mutate(name = as.character(name)) %>%
-  select(`Node Type`, node_name, release_date, genre, notable, name, single, written_date, stage_name, notoriety_date, is_sailor, is_ivy, is_oceanus_folk)
-
-# Create edge mapping
-key_to_id_map <- mc1_nodes_dedup %>%
-  select(group_key, kept_id = id)
-
-id_remap <- mc1_nodes_tagged %>%
-  left_join(key_to_id_map, by = "group_key") %>%
-  select(original_id = id, kept_id)
-
-# Map edges to cleaned nodes
-mc1_edges_mapped <- mc1_edges_raw %>%
-  left_join(id_remap, by = c("source" = "original_id")) %>%
-  mutate(source = kept_id) %>%
-  select(-kept_id) %>%
-  left_join(id_remap, by = c("target" = "original_id")) %>%
-  mutate(target = kept_id) %>%
-  select(-kept_id) %>%
-  rename(from = source, to = target) %>%
-  mutate(from = as.character(from), to = as.character(to))
-
-# Remove unmatched edges
-mc1_edges_clean <- mc1_edges_mapped %>%
-  filter(!is.na(from), !is.na(to))
-
-# Define edge validation rules
-edge_rules <- list(
-  PerformerOf = list(source = c("Person", "MusicalGroup"), target = c("Song", "Album")),
-  ComposerOf = list(source = c("Person"), target = c("Song", "Album")),
-  ProducerOf = list(source = c("Person", "RecordLabel"), target = c("Song", "Album", "Person", "MusicalGroup")),
-  LyricistOf = list(source = c("Person"), target = c("Song", "Album")),
-  RecordedBy = list(source = c("Song", "Album"), target = c("RecordLabel")),
-  DistributedBy = list(source = c("Song", "Album"), target = c("RecordLabel")),
-  InStyleOf = list(source = c("Song", "Album"), target = c("Song", "Album", "Person", "MusicalGroup")),
-  InterpolatesFrom = list(source = c("Song", "Album"), target = c("Song", "Album")),
-  CoverOf = list(source = c("Song", "Album"), target = c("Song", "Album")),
-  LyricalReferenceTo = list(source = c("Song", "Album"), target = c("Song", "Album")),
-  DirectlySamples = list(source = c("Song", "Album"), target = c("Song", "Album")),
-  MemberOf = list(source = c("Person"), target = c("MusicalGroup"))
-)
-
-# Validate edges against schema
-node_type_lookup <- mc1_nodes_clean %>%
-  select(name, `Node Type`) %>%
-  deframe()
-
-mc1_edges_checked <- mc1_edges_clean %>%
-  mutate(
-    source_type = node_type_lookup[from],
-    target_type = node_type_lookup[to]
-  )
-
-mc1_edges_tagged <- mc1_edges_checked %>%
-  rowwise() %>%
-  mutate(
-    valid = {
-      rule <- edge_rules[[`Edge Type`]]
-      if (is.null(rule)) TRUE
-      else {
-        source_type %in% rule$source && target_type %in% rule$target
-      }
-    }
-  ) %>%
-  ungroup()
-
-# Keep only valid edges
-mc1_edges_clean <- mc1_edges_tagged %>%
-  filter(valid) %>%
-  select(from, to, `Edge Type`)
-
-# Temporal validation for influence relationships
-influence_edge_types <- c("InStyleOf", "InterpolatesFrom", "CoverOf", "LyricalReferenceTo", "DirectlySamples")
-
-temporal_check <- mc1_edges_clean %>%
-  filter(`Edge Type` %in% influence_edge_types) %>%
-  left_join(mc1_nodes_clean %>% 
-              select(name, source_type = `Node Type`, source_release = release_date), 
-            by = c("from" = "name")) %>%
-  left_join(mc1_nodes_clean %>% 
-              select(name, target_type = `Node Type`, target_release = release_date), 
-            by = c("to" = "name")) %>%
-  filter(source_type %in% c("Song", "Album"),
-         target_type %in% c("Song", "Album")) %>%
-  mutate(
-    temporal_violation = case_when(
-      is.na(source_release) | is.na(target_release) ~ FALSE,
-      source_release < target_release ~ TRUE,
-      TRUE ~ FALSE
-    )
-  )
-
-# Remove temporally inconsistent edges
-non_influence_edges <- mc1_edges_clean %>%
-  filter(!(`Edge Type` %in% influence_edge_types))
-
-consistent_influence_edges <- temporal_check %>%
-  filter(!temporal_violation) %>%
-  select(from, to, `Edge Type`)
-
-mc1_edges_clean <- bind_rows(non_influence_edges, consistent_influence_edges)
-
-# Add color groupings for visualization
-mc1_edges_clean <- mc1_edges_clean %>%
-  mutate(`Edge Colour` = case_when(
-    `Edge Type` %in% c("PerformerOf", "ComposerOf", "ProducerOf", "LyricistOf", "RecordedBy", "DistributedBy") ~ "Creator Of",
-    `Edge Type` %in% c("InStyleOf", "InterpolatesFrom", "CoverOf", "LyricalReferenceTo", "DirectlySamples") ~ "Influenced By",
-    `Edge Type` == "MemberOf" ~ "Member Of",
-    TRUE ~ "Other"
-  ))
-
-mc1_nodes_clean <- mc1_nodes_clean %>%
-  mutate(
-    `Node Colour` = case_when(
-      `Node Type` %in% c("Person", "MusicalGroup", "RecordLabel") ~ "Musician",
-      genre == "Oceanus Folk" ~ "Oceanus Folk",
-      TRUE ~ "Other Genre"
-    )
-  )
-
-# Create the knowledge graph
-set.seed(1234)
-graph <- tbl_graph(edges = mc1_edges_clean,
-                   nodes = mc1_nodes_clean,
-                   directed = TRUE)
-
-
-
-# Data Preparation for influenced table
-
-# Step 1: Get all creator names
-global_creators <- mc1_nodes_clean %>%
-  filter(`Node Type` %in% c("Person", "MusicalGroup"))
-
-# Step 2: Get all outgoing edges from these creators
-creator_out_edges <- mc1_edges_clean %>%
-  filter(from %in% global_creators$name, `Edge Colour` == "Creator Of")
-
-# Step 3: Get all songs made by creators
-creator_music <- mc1_nodes_clean %>%
-  filter(name %in% creator_out_edges$to)
-
-# Step 4: Get all outgoing edges from songs
-creator_songs_out_edges <- mc1_edges_clean %>%
-  filter(from %in% creator_music$name, `Edge Colour` == "Influenced By")
-
-# Step 5: First join to get creator names (from)
-creators <- creator_out_edges %>%
-  left_join(mc1_nodes_clean, by = c("from" = "name")) %>%
-  select(from, to, node_name, `Node Type`) %>%
-  rename(creator_from = from, creator_name = node_name, creator_node_type = `Node Type`)
-
-# Step 6: Second join to get song names (to)
-creator_and_songs <- creators %>%
-  left_join(mc1_nodes_clean, by = c("to" = "name")) %>%
-  select(creator_from, creator_name, creator_node_type, to, node_name, release_date, genre, notable) %>%
-  rename(song_name = node_name, song_genre = genre, song_to = to) %>%
-  distinct()
-
-# Step 7: Third join to get song's influenced genre (to)
-creator_and_songs_and_influenced_by <- creator_and_songs %>%
-  left_join(creator_songs_out_edges %>% select(from, to), by = c("song_to" = "from"), relationship = "many-to-many") %>%
-  left_join(mc1_nodes_clean %>% select(name, genre), by = c("to" = "name")) %>%
-  rename(influenced_by_genre = genre, influenced_by = to) %>%
-  distinct()
-
-# Step 8: Fourth join to get influenced song's creator
-creator_and_songs_and_influenced_by_creator <- creator_and_songs_and_influenced_by %>%
-  left_join(creator_out_edges %>% select(from, to), by = c("influenced_by" = "to"), relationship = "many-to-many") %>%
-  rename(influenced_by_creator = from)
-
-
-
-
-# Data Preparation influence table
-
-# Step 4: Get all incoming edges from songs (music and collaborators)
-creator_songs_in_edges <- mc1_edges_clean %>%
-  filter(to %in% creator_music$name)
-
-# Step 5: First join to get creator names (from)
-creators <- creator_out_edges %>%
-  left_join(mc1_nodes_clean, by = c("from" = "name")) %>%
-  select(from, to, node_name, `Node Type`) %>%
-  rename(creator_name = node_name, creator_node_type = `Node Type`)
-
-# Step 6: Second join to get song names (to)
-creator_and_songs <- creators %>%
-  left_join(mc1_nodes_clean, by = c("to" = "name")) %>%
-  select(from, creator_name, creator_node_type, to, node_name, release_date, genre, notable) %>%
-  rename(creator_from = from, song_name = node_name, creator_release_date = release_date, song_genre = genre, song_to = to) %>%
-  distinct()
-
-# Step 7: Third join to get influenced songs / collaborators
-creator_and_songs_and_influences <- creator_and_songs %>%
-  left_join(creator_songs_in_edges %>% select(from, to, `Edge Colour`), by = c("song_to" = "to"), relationship = "many-to-many") %>%
-  left_join(mc1_nodes_clean %>% select(name, genre, node_name, release_date), by = c("from" = "name")) %>%
-  rename(influence_genre = genre, infuence_music_collaborate = from, infuence_music_collaborate_name = node_name, influence_release_date = release_date) %>%
-  distinct()
-
-# Step 8: Fourth join to get influenced song's creator
-creator_and_songs_and_influences_and_creators <- creator_and_songs_and_influences %>%
-  left_join(creator_out_edges %>% select(from, to), by = c("infuence_music_collaborate" = "to"), relationship = "many-to-many") %>%
-  rename(influence_creator = from)
-
-# Step 9: Fifth join to get influenced song's creator name
-creator_and_songs_and_influences_and_creators <- creator_and_songs_and_influences_and_creators %>%
-  left_join(mc1_nodes_clean %>% select(name, node_name), by = c("influence_creator" = "name")) %>%
-  rename(influence_creator_name = node_name)
-
-# Step 10: Add release date for collaborators
-creator_and_songs_and_influences_and_creators_collaborate <- creator_and_songs_and_influences_and_creators %>%
-  mutate(
-    influence_release_date = case_when(
-      `Edge Colour` == "Creator Of" ~ creator_release_date,
-      TRUE ~ influence_release_date  # Keeps original value if not "Creator Of"
-    ),
-    influence_creator = case_when(   # A collaborator can also be considered influenced
-      `Edge Colour` == "Creator Of" ~ infuence_music_collaborate,
-      TRUE ~ influence_creator
-    )
-  )
-
-all_genre <- creator_music$genre %>%
-  unique()
-
-all_artists <- global_creators$node_name %>%
-  unique()
+source("data_prep.R")  # Load your reactive function
+source("Question2_Server.R") # Load Q2 server
 
 website_theme <- bs_theme(
   bootswatch = "minty",
@@ -428,61 +146,176 @@ ui <- navbarPage(
   ),
 
   ############################### Question 2 #######################################
+  ############ Tab 1
   tabPanel("Influence of Oceanus Folk",
            tabsetPanel(
+             
+             ################## Tab 1 ##################
              tabPanel("Trajectory over Time",
                       sidebarLayout(
                         sidebarPanel(
-                          sliderInput("year_range_2a", "Filter by Year:", min = 1980, max = 2040,
-                                      value = c(1980, 2040), step = 1, sep = "", animate = TRUE)
+                          width = 2,
+                          sliderInput("year_range_2a", "Year:",
+                                      min = 1990, max = 2040,
+                                      value = c(1990, 2040),
+                                      step = 1,
+                                      round = TRUE,
+                                      sep = "",
+                                      width = "100%",
+                                      animate = FALSE)
                         ),
                         mainPanel(
-                          plotOutput("genreTrendPlot", height = "400px"),
-                          htmlOutput("insight_2a")
+                          fluidRow(
+                            column(12, withSpinner(plotlyOutput("plot_facet_counts", height = "300px")))
+                          ),
+                          fluidRow(
+                            column(12, withSpinner(plotlyOutput("plot_cumulative", height = "500px")))
+                          ),
+                          fluidRow(
+                            column(12, withSpinner(plotlyOutput("plot_surprise", height = "500px")))
+                          ),
+                          tags$hr(),
+                          htmlOutput("insight_2afinal")
                         )
                       )
              ),
-             tabPanel("Outward Influence on other Genres",
-                      sidebarLayout(
-                        sidebarPanel(
-                          sliderInput("year_range_2a", "Filter by Year:", min = 1980, max = 2040,
-                                      value = c(1980, 2040), step = 1, sep = "", animate = TRUE)
-                        ),
-                        mainPanel(
-                          plotOutput("influencedGenresPlot", height = "400px"),
-                          tableOutput("topInfluencedArtists"),
-                          htmlOutput("insight_2b")
-                        )
-                      )
-             ),
+            
+             ############ Tab 2
+             
+             tabPanel(
+               title = "Outward Influence on other Genres",
+               sidebarLayout(
+                 sidebarPanel(
+                   width = 2,
+                   selectInput("selected_genre",
+                               "Select Genre:",
+                               choices = c("All", sort(unique(genre_influence_stats$song_genre))),
+                               selected = "All",
+                               width = "100%")
+                 ),
+                 
+                 mainPanel(
+                   # Row 1: Interpretation text (on top)
+                   fluidRow(
+                     column(
+                       width = 12,
+                       h4("Interpretation of Sankey Diagram"),
+                       helpText("To determine which genres have been most influenced by Oceanus Folk, all songs and albums were identified. Then, the music (Songs/Albums) that influenced them were obtained to calculate the frequency and percentage of Oceanus Folk's influence across different musical genre. This analysis reveals the genres that show the strongest impact from Oceanus Folk's musical style.")
+                     )
+                   ),
+                   
+                   # Row 2: Sankey diagram (below text)
+                   fluidRow(
+                     column(
+                       width = 12,
+                       h4("Sankey Diagram"),
+                       sankeyNetworkOutput("genreSankey", height = "400px")
+                     )
+                   ),
+                   
+                   br(),
+                   
+                   # Row 3: Data Table
+                   fluidRow(
+                     column(
+                       width = 12,
+                       h4("Data Table: Oceanus Folk Influence by Genre"),
+                       uiOutput("genreTable")
+                     )
+                   )
+                 )  
+               )   
+             ),     
+             
+             ############ Tab 3
+             
              tabPanel("Outward Influence on other Artists",
-                      sidebarLayout(
-                        sidebarPanel(
-                          sliderInput("year_range_2a", "Filter by Year:", min = 1980, max = 2040,
-                                      value = c(1980, 2040), step = 1, sep = "", animate = TRUE)
+                      fluidPage(
+                        
+                        # Row 1: Interpretation text
+                        fluidRow(
+                          column(
+                            width = 12,
+                            h4("Interpretation of Sankey Diagram"),
+                            helpText("To identify the top artists most influenced by Oceanus Folk, all songs or albums by each artist were identified, along with the songs that influenced them. Those who created Oceanus Folk music or were influenced by the genre were ranked based on total exposure.")
+                          )
                         ),
-                        mainPanel(
-                          plotOutput("evolvingOceanusPlot_2c1", height = "400px"),
-                          htmlOutput("insight_2c1")
-                        )
-                      )
-             ),
-             tabPanel("Inward Influence from other Genre",
-                      sidebarLayout(
-                        sidebarPanel(
-                          sliderInput("year_range_2a", "Filter by Year:", min = 1980, max = 2040,
-                                      value = c(1980, 2040), step = 1, sep = "", animate = TRUE)
+                        
+                        # Row 2: Sankey diagram
+                        fluidRow(
+                          column(
+                            width = 12,
+                            h4("Sankey Diagram: Top Influenced Artists"),
+                            sankeyNetworkOutput("artistSankey", height = "600px")
+                          )
                         ),
-                        mainPanel(
-                          plotOutput("evolvingOceanusPlot_2c2", height = "400px"),
-                          htmlOutput("insight_2c2")
+                        
+                        br(),
+                        
+                        # Row 3: Data Table
+                        fluidRow(
+                          column(
+                            width = 12,
+                            h4("Table: Top Artists Influenced by Oceanus Folk"),
+                            uiOutput("artistInfluenceTable")
+                          )
                         )
-                      )
+                        
+                      ) # end fluidPage
              ),
+             ############ Tab 4
+             
+             tabPanel(
+               title = "Inward Influence from other Genres",
+               sidebarLayout(
+                 sidebarPanel(
+                   width = 2,
+                   selectInput("selected_genre",
+                               "Select Genre:",
+                               choices = c("All", sort(unique(genre_influence_stats$song_genre))),
+                               selected = "All",
+                               width = "100%")
+                 ),
+                 
+                 mainPanel(
+                   # Row 1: Interpretation text (on top)
+                   fluidRow(
+                     column(
+                       width = 12,
+                       h4("Interpretation of Sankey Diagram"),
+                       helpText("To determine which genres have most influenced Oceanus Folk, all Oceanus Folk songs/albums were analyzed along with the genres of songs that influenced them. This reveals the external genres that shaped Oceanus Folk's evolution.")
+                     )
+                   ),
+                   
+                   # Row 2: Sankey diagram
+                   fluidRow(
+                     column(
+                       width = 12,
+                       h4("Sankey Diagram"),
+                       sankeyNetworkOutput("influencerSankey", height = "400px")
+                     )
+                   ),
+                   
+                   br(),
+                   
+                   # Row 3: Data Table
+                   fluidRow(
+                     column(
+                       width = 12,
+                       h4("Data Table: Genres that Influenced Oceanus Folk"),
+                       uiOutput("influencerGenreTable")
+                     )
+                   )
+                 )
+               ) 
+             )
+             
+             ############ Tab 5
+             
              tabPanel("Evolution with Rise of Sailor Shift",
                       sidebarLayout(
                         sidebarPanel(
-                          sliderInput("year_range_2a", "Filter by Year:", min = 1980, max = 2040,
+                          sliderInput("year_range_2a_sailor", "Filter by Year:", min = 1980, max = 2040,
                                       value = c(1980, 2040), step = 1, sep = "", animate = TRUE)
                         ),
                         mainPanel(
@@ -1101,35 +934,9 @@ server <- function(input, output, session) {
     }
   })
   
+#########################################Question 2 ###################################
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  ##############################################################################
+  Question2_Server(input, output, session)
   
   ############################### Question 3 Table ##################################
   
