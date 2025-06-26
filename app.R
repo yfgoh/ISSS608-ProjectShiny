@@ -337,7 +337,7 @@ ui <- navbarPage(
                         sidebarPanel(
                           selectInput("filter_genres_3_t", "Filter by Genre:",
                                       choices = all_genre,
-                                      selected = c(all_genre, multiple = TRUE),
+                                      selected = all_genre, multiple = TRUE),
                           selectizeInput("artist_3_t_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_t_2", "Select Artist 2 to Compare:",
