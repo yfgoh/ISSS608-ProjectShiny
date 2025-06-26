@@ -13,9 +13,6 @@ Question3_Server <- function(input, output, session) {
     updateSelectizeInput(session, "artist_t_1", choices = filtered_artist(), selected = "Sailor Shift", server = TRUE)
     updateSelectizeInput(session, "artist_t_2", choices = filtered_artist(), selected = "Jay Walters", server = TRUE)
     updateSelectizeInput(session, "artist_t_3", choices = filtered_artist(), selected = "Min Fu", server = TRUE)
-  })
-  
-  observe({
     updateSelectizeInput(session, "artist_a_1", choices = all_artists, selected = "Sailor Shift", server = TRUE)
     updateSelectizeInput(session, "artist_a_2", choices = all_artists, selected = "Jay Walters", server = TRUE)
     updateSelectizeInput(session, "artist_a_3", choices = all_artists, selected = "Min Fu", server = TRUE)

@@ -368,7 +368,6 @@ ui <- navbarPage(
                                          choices = NULL, selected = NULL, multiple = FALSE)
                         ),
                         mainPanel(
-                          mainPanel(
                             fluidRow(
                               column(width = 6,
                                      h4("Music Releases"),
@@ -388,10 +387,9 @@ ui <- navbarPage(
                                      h4("Influenced Music"),
                                      withSpinner(plotlyOutput("predictedStars_3a_4", height = "350px"))
                               )
-                            )
-                          ),
-                          tags$hr(),
-                          htmlOutput("insight_3b")
+                            ),
+                            tags$hr(),
+                            htmlOutput("insight_3b")
                         )
                       )
              ),
