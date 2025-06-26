@@ -75,16 +75,20 @@ ui <- navbarPage(
                       sidebarLayout(
                         sidebarPanel(
                           selectInput("node_type_filter", "Filter Node Types:",
-                                      choices = c("Song", "Album", "MusicalGroup", "Person"),
+                                      choices = c("Song", "Album", "Person", "MusicalGroup"),
                                       selected = c("Song", "Album"), multiple = TRUE),
                           selectInput("edge_type_filter", "Filter Edge Types:",
-                                      choices = c("Creator Of", "Influenced By", "Member Of"),
+                                      choices = c("Creator Of", "Influenced By","Member Of"),
                                       selected = c("Creator Of", "Influenced By"), multiple = TRUE)
                         ),
                         mainPanel(
+                          h5("Explore Sailor Shift's work — Simply hover your mouse over each node to learn more"),
                           withSpinner(girafeOutput("sailorWorkPlot", width = "100%", height = "600px")),
                           tags$hr(),
-                          htmlOutput("sailorBio")
+                          htmlOutput("sailorBio"),
+                          tags$hr(),
+                          h5("See the table below for more details"),
+                          DT::dataTableOutput("filteredNodeTable")
                         )
                       )
              ),
@@ -94,12 +98,14 @@ ui <- navbarPage(
                         sidebarPanel(
                           selectInput("node_type_filter", "Filter Node Types:",
                                       choices = c("Song", "Album", "MusicalGroup", "Person"),
-                                      selected = c("Song", "Album"), multiple = TRUE),
+                                      selected = c("Song", "Album", "MusicalGroup", "Person"), multiple = TRUE),
                           selectInput("edge_type_filter", "Filter Edge Types:",
                                       choices = c("Creator Of", "Influenced By", "Member Of"),
-                                      selected = c("Creator Of", "Influenced By"), multiple = TRUE)
+                                      selected = c("Creator Of", "Influenced By", "Member Of"), multiple = TRUE)
                         ),
                         mainPanel(
+                          h4("Who has she been most influenced by over time?"),
+                          h5("The visualisation shows all the Person and Musical Group that have influenced Sailor Shift's work."),
                           withSpinner(girafeOutput("influencedByPlot", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1a")
@@ -112,12 +118,14 @@ ui <- navbarPage(
                         sidebarPanel(
                           selectInput("node_type_filter", "Filter Node Types:",
                                       choices = c("Song", "Album", "MusicalGroup", "Person"),
-                                      selected = c("Song", "Album"), multiple = TRUE),
+                                      selected = c("Song", "Album", "MusicalGroup","Person"), multiple = TRUE),
                           selectInput("edge_type_filter", "Filter Edge Types:",
                                       choices = c("Creator Of", "Influenced By", "Member Of"),
-                                      selected = c("Creator Of", "Influenced By"), multiple = TRUE)
+                                      selected = c("Creator Of", "Influenced By", "Member Of"), multiple = TRUE)
                         ),
                         mainPanel(
+                          h4("Who has she collaborated with and directly or indirectly influenced?"),
+                          h5("Learn more about her collaborators by hovering your mouse over the nodes"),
                           withSpinner(girafeOutput("collabInfluenceNetwork", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1b")
@@ -137,6 +145,8 @@ ui <- navbarPage(
                           ),
                         ),
                         mainPanel(
+                          h4("How has she influenced collaborators of the broader Oceanus Folk community?"),
+                          h5("Adjust the degree of separation to uncover how artists are interconnected across the network"),
                           withSpinner(girafeOutput("broadInfluencePlot", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1c")
@@ -337,7 +347,7 @@ ui <- navbarPage(
                         sidebarPanel(
                           selectInput("filter_genres_3_t", "Filter by Genre:",
                                       choices = all_genre,
-                                      selected = c(all_genre, multiple = TRUE),
+                                      selected = c(all_genre, multiple = TRUE)),
                           selectizeInput("artist_3_t_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_t_2", "Select Artist 2 to Compare:",
@@ -464,7 +474,7 @@ server <- function(input, output, session) {
       activate(edges) %>%
       filter(`Edge Colour` %in% input$edge_type_filter)
     
-    # Visualization
+    # Visualisation
     g <- filtered_edges %>%
       ggraph(layout = "fr") +
       geom_edge_fan(
@@ -486,10 +496,10 @@ server <- function(input, output, session) {
           size = ifelse(node_name %in% c("Sailor Shift", "Ivy Echos", "Wei Zhao"), 3, 1),
           tooltip = case_when(
             `Node Type` == "Album" ~ sprintf(
-              "%s %s Notable: %s (%s)", node_name, genre, notable, release_date
+              "%s %s \nNotable: %s (%s)", node_name, genre, notable, release_date
             ),
             `Node Type` == "Song" ~ sprintf(
-              "%s %s Notable: %s (%s) Single: %s", node_name, genre, notable, release_date, single
+              "%s %s \nNotable: %s (%s) \n Single: %s", node_name, genre, notable, release_date, single
             ),
             TRUE ~ sprintf("%s", node_name)
           )
@@ -543,14 +553,55 @@ server <- function(input, output, session) {
     girafe(ggobj = g, width_svg = 7, height_svg = 6)
   })
   
+  ## Data Table
+  output$filteredNodeTable <- DT::renderDataTable({
+    sailor_node <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_name == "Sailor Shift") %>%
+      pull(creator_from) %>%
+      unique()
+    
+    sailor_songs <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_from == sailor_node,
+             creator_from != influenced_by) %>%
+      pull(song_to)
+    
+    sailor_songs_influenced <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_from == sailor_node,
+             creator_from != influenced_by) %>%
+      pull(influenced_by)
+    
+    sailor_songs_influenced_creators <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_from == sailor_node,
+             creator_from != influenced_by) %>%
+      pull(influenced_by_creator)
+    
+    all_node_names <- unique(c(
+      sailor_node,
+      sailor_songs,
+      sailor_songs_influenced,
+      sailor_songs_influenced_creators
+    ))
+    
+    # Filter nodes only
+    filtered_nodes <- graph %>%
+      activate(nodes) %>%
+      filter(name %in% all_node_names) %>%
+      filter(`Node Type` %in% input$node_type_filter) %>%
+      as_tibble() %>%
+      select(name, node_name, `Node Type`, genre, notable, release_date, single)
+    
+    # Display the filtered node data as a table
+    DT::datatable(filtered_nodes, options = list(pageLength = 5), rownames = FALSE)
+  })
+  
+  
   ##############################################################################
   
   ############################### Question 1a ##################################
 
   # Server-side reactive output for sailorWorkPlot
   output$influencedByPlot <- renderGirafe({
-      # Data Preparation
-    
+    # Data Preparation
     # Step 1: Get the node of the sailor
     sailor_node <- creator_and_songs_and_influenced_by_creator %>%
       filter(creator_name == "Sailor Shift") %>%
@@ -569,7 +620,7 @@ server <- function(input, output, session) {
              creator_from != influenced_by) %>%
       pull(influenced_by)
     
-    # Step 5: Get the creators of the influenced by songs
+    # Step 4: Get the creators of the influenced by songs
     sailor_songs_influenced_creators <- creator_and_songs_and_influenced_by_creator %>%
       filter(creator_from == sailor_node,
              creator_from != influenced_by) %>%
@@ -585,13 +636,23 @@ server <- function(input, output, session) {
     
     # Step 6: Filter graph to relevant nodes only
     sub_graph <- graph %>%
+      activate(nodes) %>%
       filter(name %in% all_node_names)
     
     
+    # 1. Filter nodes by selected Node Types
+    filtered_graph <- sub_graph %>%
+      activate(nodes) %>%
+      filter(`Node Type` %in% input$node_type_filter)
+    
+    # 2. Filter edges by selected Edge Types
+    filtered_graph <- filtered_graph %>%
+      activate(edges) %>%
+      filter(`Edge Colour` %in% input$edge_type_filter)
     
     # Visualisation
     
-    g <- sub_graph %>%
+    g <- filtered_graph %>%
       ggraph(layout = "fr") + 
       geom_edge_fan(
         aes(
@@ -657,13 +718,14 @@ server <- function(input, output, session) {
           "Other Genre" = "#A45200"
         )
       ) +
-      theme_graph() +
+      theme_graph(base_family = "sans") +
       theme(legend.text = element_text(size = 6),
             legend.title = element_text(size = 9)) +
       scale_size_identity()
     
     girafe(ggobj = g, width_svg = 7, height_svg = 6)
-    })
+  })
+  
   
   
   ##############################################################################
@@ -672,7 +734,6 @@ server <- function(input, output, session) {
   
   output$collabInfluenceNetwork <- renderGirafe({
     # Data Preparation
-    
     # Step 1: Get the node of the sailor
     sailor_node <- creator_and_songs_and_influenced_by_creator %>%
       filter(creator_name == "Sailor Shift") %>%
@@ -713,13 +774,21 @@ server <- function(input, output, session) {
     
     # Create subgraph
     sub_graph <- graph %>%
+      activate(nodes) %>%
       filter(name %in% all_nodes)
     
+    # Filter nodes by selected types
+    filtered_graph <- sub_graph %>%
+      activate(nodes) %>%
+      filter(`Node Type` %in% input$node_type_filter)
     
+    # Filter edges by selected types
+    filtered_graph <- filtered_graph %>%
+      activate(edges) %>%
+      filter(`Edge Colour` %in% input$edge_type_filter)
     
     # Visualisation
-    
-    g <- sub_graph %>%
+    g <- filtered_graph %>%
       ggraph(layout = "fr") + 
       geom_edge_fan(
         aes(
@@ -784,14 +853,14 @@ server <- function(input, output, session) {
           "Other Genre" = "#A45200"
         )
       ) +
-      theme_graph() +
+      theme_graph(base_family = "sans") +
       theme(legend.text = element_text(size = 6),
             legend.title = element_text(size = 9)) +
       scale_size_identity()
     
     girafe(ggobj = g, width_svg = 7, height_svg = 6)
   })
-    
+  
   ##############################################################################
   
   ############################### Question 1c ##################################
@@ -800,7 +869,6 @@ server <- function(input, output, session) {
   
   output$broadInfluencePlot <- renderGirafe({
     # Data Preparation
-    
     # Step 1: Get the node of the sailor
     sailor_node <- creator_and_songs_and_influenced_by_creator %>%
       filter(creator_name == "Sailor Shift") %>%
@@ -922,7 +990,7 @@ server <- function(input, output, session) {
           `Member Of` = "#CF57FF"
         )
       ) +
-      theme_graph() +
+      theme_graph(base_family = "sans") +
       theme(legend.text = element_text(size = 6),
             legend.title = element_text(size = 9)) +
       scale_size_identity() + 
@@ -981,11 +1049,33 @@ server <- function(input, output, session) {
 
 
   output$insight_1a <- renderUI({
-    HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
+    HTML("
+    <h4>Key observations:</h4>
+    <ul>
+      <li>Most other artists and groups have only produced a single work that influenced one of Sailor Shift's creations</li>
+      <li><strong>Wei Zhao stands out</strong> as having influenced Sailor Shift multiple times:</li>
+      <ul>
+        <li>Produced <em>Susurros de Passion</em> which influenced her album <em>Salty Dreams</em></li>
+        <li>Composed <em>Silent Steps in the Forest's Embrace</em> which influenced her song <em>Moon Over the Tide</em></li>
+      </ul>
+    </ul>
+    
+    <p>Use the interactive visualization to explore these influence relationships in more detail.</p>
+    ")
   })
   
   output$insight_1b <- renderUI({
-    HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
+    HTML("
+    <ul>
+      <li>Sailor Shift has collaborated with a wide variety of artists throughout the years.
+      </li>
+      <li>However, it is worth noting that Sailor Shift has not directly or indirectly influenced anyone, since none of her music has influenced others.
+        <ul>
+          <li>For example, no Songs/Albums has referenced her Songs or Albums.</li>
+        </ul>
+      </li>
+    </ul>
+  ")
   })
   
   output$insight_1c <- renderUI({
