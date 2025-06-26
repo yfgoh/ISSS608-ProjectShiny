@@ -331,17 +331,22 @@ ui <- navbarPage(
   ############################### Question 3 #######################################
   tabPanel("Oceanus Folk's Rising Star",
            tabsetPanel(
+             ######################## Question 3 Table ############################
              tabPanel("Artist's Star Factor",
                       sidebarLayout(
                         sidebarPanel(
-                          selectInput("filter_genres_3a", "Filter by Genre:",
+                          selectInput("filter_genres_3_t", "Filter by Genre:",
                                       choices = c(all_genre),
                                       selected = c(all_genre), multiple = TRUE),
-                          sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
-                                      value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
+                          selectizeInput("artist_t_1", "Select Artist 1 to Compare:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectizeInput("artist_t_2", "Select Artist 2 to Compare:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectizeInput("artist_t_3", "Select Artist 3 to Compare:",
+                                         choices = NULL, selected = NULL, multiple = FALSE)
                         ),
                         mainPanel(
-                          withSpinner(uiOutput("predictedStars_3_table")),
+                          withSpinner(DT::dataTableOutput("predictedStars_3_table")),
                           tags$hr(),
                           htmlOutput("insight_1c")
                         )
@@ -355,23 +360,35 @@ ui <- navbarPage(
                                              choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
                           sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
                                       value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
-                          selectizeInput("artist_1", "Select Artist 1 to Compare:",
+                          selectizeInput("artist_a_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          selectizeInput("artist_2", "Select Artist 2 to Compare:",
+                          selectizeInput("artist_a_2", "Select Artist 2 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          selectizeInput("artist_3", "Select Artist 3 to Compare:",
+                          selectizeInput("artist_a_3", "Select Artist 3 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE)
                         ),
                         mainPanel(
-                          tabsetPanel(
-                            tabPanel("Music Releases", 
-                                     withSpinner(plotlyOutput("predictedStars_3a_1", width = "100%", height = "600px"))),
-                            tabPanel("Notable Music Releases", 
-                                     withSpinner(plotlyOutput("predictedStars_3a_2", width = "100%", height = "600px"))),
-                            tabPanel("Artist Influ & Colab", 
-                                     withSpinner(plotlyOutput("predictedStars_3a_3", width = "100%", height = "600px"))),
-                            tabPanel("Influenced Music", 
-                                     withSpinner(plotlyOutput("predictedStars_3a_4", width = "100%", height = "600px")))
+                          mainPanel(
+                            fluidRow(
+                              column(width = 6,
+                                     h4("Music Releases"),
+                                     withSpinner(plotlyOutput("predictedStars_3a_1", height = "350px"))
+                              ),
+                              column(width = 6,
+                                     h4("Notable Music Releases"),
+                                     withSpinner(plotlyOutput("predictedStars_3a_2", height = "350px"))
+                              )
+                            ),
+                            fluidRow(
+                              column(width = 6,
+                                     h4("Artist Influences & Collaborations"),
+                                     withSpinner(plotlyOutput("predictedStars_3a_3", height = "350px"))
+                              ),
+                              column(width = 6,
+                                     h4("Influenced Music"),
+                                     withSpinner(plotlyOutput("predictedStars_3a_4", height = "350px"))
+                              )
+                            )
                           ),
                           tags$hr(),
                           htmlOutput("insight_3b")
