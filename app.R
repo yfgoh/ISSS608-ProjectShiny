@@ -336,13 +336,13 @@ ui <- navbarPage(
                       sidebarLayout(
                         sidebarPanel(
                           selectInput("filter_genres_3_t", "Filter by Genre:",
-                                      choices = c(all_genre),
-                                      selected = c(all_genre), multiple = TRUE),
-                          selectizeInput("artist_t_1", "Select Artist 1 to Compare:",
+                                      choices = all_genre,
+                                      selected = c(all_genre, multiple = TRUE),
+                          selectizeInput("artist_3_t_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          selectizeInput("artist_t_2", "Select Artist 2 to Compare:",
+                          selectizeInput("artist_3_t_2", "Select Artist 2 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          selectizeInput("artist_t_3", "Select Artist 3 to Compare:",
+                          selectizeInput("artist_3_t_3", "Select Artist 3 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE)
                         ),
                         mainPanel(
@@ -356,15 +356,16 @@ ui <- navbarPage(
              tabPanel("Career Trajectories & Influence Comparison",
                       sidebarLayout(
                         sidebarPanel(
-                          checkboxGroupInput("filter_genres_3a", "Filter by Genre:", 
-                                             choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
+                          selectInput("filter_genres_3_a", "Filter by Genre:",
+                                      choices = all_genre,
+                                      selected = all_genre, multiple = TRUE),
                           sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
                                       value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
-                          selectizeInput("artist_a_1", "Select Artist 1 to Compare:",
+                          selectizeInput("artist_3_a_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          selectizeInput("artist_a_2", "Select Artist 2 to Compare:",
+                          selectizeInput("artist_3_a_2", "Select Artist 2 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          selectizeInput("artist_a_3", "Select Artist 3 to Compare:",
+                          selectizeInput("artist_3_a_3", "Select Artist 3 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE)
                         ),
                         mainPanel(
@@ -397,7 +398,7 @@ ui <- navbarPage(
              tabPanel("Emerging Stars of Oceanus Folk",
                       sidebarLayout(
                         sidebarPanel(
-                          checkboxGroupInput("filter_genres_3a", "Filter by Genre:", 
+                          checkboxGroupInput("filter_genres_3_a", "Filter by Genre:", 
                                              choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
                           sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
                                       value = c(2020, 2040), step = 1, sep = "", animate = TRUE),

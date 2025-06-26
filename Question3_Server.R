@@ -1,7 +1,7 @@
 Question3_Server <- function(input, output, session) {
 
   ############################### Question 3 table ##################################
-  filtered_artist <- reactive({
+  filtered_artist_3_t <- reactive({
     creator_and_songs %>%
       filter(song_genre %in% c(input$filter_genres_3_t),
              creator_node_type %in% c("Person", "MusicalGroup")) %>%
@@ -9,16 +9,26 @@ Question3_Server <- function(input, output, session) {
       unique()
   })
   
+  filtered_artist_3_a <- reactive({
+    creator_and_songs %>%
+      filter(song_genre %in% c(input$filter_genres_3_a),
+             creator_node_type %in% c("Person", "MusicalGroup")) %>%
+      pull(creator_name) %>%
+      unique()
+  })
+  
   observe({
-    updateSelectizeInput(session, "artist_t_1", choices = filtered_artist(), selected = "Sailor Shift", server = TRUE)
-    updateSelectizeInput(session, "artist_t_2", choices = filtered_artist(), selected = "Jay Walters", server = TRUE)
-    updateSelectizeInput(session, "artist_t_3", choices = filtered_artist(), selected = "Min Fu", server = TRUE)
-    updateSelectizeInput(session, "artist_a_1", choices = all_artists, selected = "Sailor Shift", server = TRUE)
-    updateSelectizeInput(session, "artist_a_2", choices = all_artists, selected = "Jay Walters", server = TRUE)
-    updateSelectizeInput(session, "artist_a_3", choices = all_artists, selected = "Min Fu", server = TRUE)
+    updateSelectizeInput(session, "artist_3_t_1", choices = filtered_artist_3_t(), selected = "Sailor Shift", server = TRUE)
+    updateSelectizeInput(session, "artist_3_t_2", choices = filtered_artist_3_t(), selected = "Jay Walters", server = TRUE)
+    updateSelectizeInput(session, "artist_3_t_3", choices = filtered_artist_3_t(), selected = "Min Fu", server = TRUE)
+  })
+  
+  observe({
+    updateSelectizeInput(session, "artist_3_a_1", choices = filtered_artist_3_a(), selected = "Sailor Shift", server = TRUE)
+    updateSelectizeInput(session, "artist_3_a_2", choices = filtered_artist_3_a(), selected = "Jay Walters", server = TRUE)
+    updateSelectizeInput(session, "artist_3_a_3", choices = filtered_artist_3_a(), selected = "Min Fu", server = TRUE)
   })
 
-  
   # Data Preparation
   
   # Step 1: To highlight songs that the creator influence that is not produced by same creator
@@ -55,7 +65,7 @@ Question3_Server <- function(input, output, session) {
       ) %>%
       arrange(desc(composite_score)) %>%
       select(creator_name, total_songs, notable_hits, collaboration_influence_creator, influence_music, composite_score) %>%
-      filter(creator_name %in% filtered_artist())
+      filter(creator_name %in% filtered_artist_3_t())
   })
   
   output$predictedStars_3_table <- DT::renderDataTable({
@@ -82,7 +92,7 @@ Question3_Server <- function(input, output, session) {
   output$predictedStars_3a_1 <- renderPlotly({
     # Data Preparation
     
-    chosen_creator_1 <- input$artist_a_1
+    chosen_creator_1 <- input$artist_3_a_1
     
     # Step 1: Get the node of the chosen creator
     chosen_node_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -102,7 +112,7 @@ Question3_Server <- function(input, output, session) {
       arrange(release_date) %>%  # Ensure dates are in chronological order
       mutate(cumulative_count = cumsum(music_count))
     
-    chosen_creator_2 <- input$artist_a_2
+    chosen_creator_2 <- input$artist_3_a_2
     
     # Step 1: Get the node of the chosen creator
     chosen_node_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -122,7 +132,7 @@ Question3_Server <- function(input, output, session) {
       arrange(release_date) %>%  # Ensure dates are in chronological order
       mutate(cumulative_count = cumsum(music_count))
     
-    chosen_creator_3 <- input$artist_a_3
+    chosen_creator_3 <- input$artist_3_a_3
     
     # Step 1: Get the node of the chosen creator
     chosen_node_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -216,7 +226,7 @@ Question3_Server <- function(input, output, session) {
   output$predictedStars_3a_2 <- renderPlotly({
     # Data Preparation
     
-    chosen_creator_1 <- input$artist_a_1
+    chosen_creator_1 <- input$artist_3_a_1
     
     # Step 1: Get the node of the chosen creator
     chosen_node_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -236,7 +246,7 @@ Question3_Server <- function(input, output, session) {
       arrange(release_date) %>%  # Ensure dates are in chronological order
       mutate(cumulative_count = cumsum(music_count))
     
-    chosen_creator_2 <- input$artist_a_2
+    chosen_creator_2 <- input$artist_3_a_2
     
     # Step 1: Get the node of the chosen creator
     chosen_node_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -256,7 +266,7 @@ Question3_Server <- function(input, output, session) {
       arrange(release_date) %>%  # Ensure dates are in chronological order
       mutate(cumulative_count = cumsum(music_count))
     
-    chosen_creator_3 <- input$artist_a_3
+    chosen_creator_3 <- input$artist_3_a_3
     
     # Step 1: Get the node of the chosen creator
     chosen_node_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -350,7 +360,7 @@ Question3_Server <- function(input, output, session) {
   output$predictedStars_3a_3 <- renderPlotly({
     # Data Preparation
     
-    chosen_creator_1 <- input$artist_a_1
+    chosen_creator_1 <- input$artist_3_a_1
     
     # Step 1: Get the node of the chosen creator
     chosen_node_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -377,7 +387,7 @@ Question3_Server <- function(input, output, session) {
       # Calculate cumulative unique artists
       mutate(cumulative_count = cumsum(music_count))
     
-    chosen_creator_2 <- input$artist_a_2
+    chosen_creator_2 <- input$artist_3_a_2
     
     # Step 1: Get the node of the chosen creator
     chosen_node_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -404,7 +414,7 @@ Question3_Server <- function(input, output, session) {
       # Calculate cumulative unique artists
       mutate(cumulative_count = cumsum(music_count))
     
-    chosen_creator_3 <- input$artist_a_3
+    chosen_creator_3 <- input$artist_3_a_3
     
     # Step 1: Get the node of the chosen creator
     chosen_node_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -504,7 +514,7 @@ Question3_Server <- function(input, output, session) {
   
   output$predictedStars_3a_4 <- renderPlotly({
     # Data Preparation
-    chosen_creator_1 <- input$artist_a_1
+    chosen_creator_1 <- input$artist_3_a_1
     
     # Step 1: Get the node of the chosen creator
     chosen_node_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -531,7 +541,7 @@ Question3_Server <- function(input, output, session) {
       arrange(release_date) %>%  # Ensure dates are in chronological order
       mutate(cumulative_count = cumsum(music_count))
     
-    chosen_creator_2 <- input$artist_a_2
+    chosen_creator_2 <- input$artist_3_a_2
     
     # Step 1: Get the node of the chosen creator
     chosen_node_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -557,7 +567,7 @@ Question3_Server <- function(input, output, session) {
       arrange(release_date) %>%  # Ensure dates are in chronological order
       mutate(cumulative_count = cumsum(music_count))
     
-    chosen_creator_3 <- input$artist_a_3
+    chosen_creator_3 <- input$artist_3_a_3
     
     # Step 1: Get the node of the chosen creator
     chosen_node_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
