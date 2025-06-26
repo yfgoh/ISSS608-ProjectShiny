@@ -54,7 +54,8 @@ Question3_Server <- function(input, output, session) {
         composite_score = round(songs_score + notable_score + artists_score + music_score, 2)
       ) %>%
       arrange(desc(composite_score)) %>%
-      select(creator_name, total_songs, notable_hits, collaboration_influence_creator, influence_music, composite_score)
+      select(creator_name, total_songs, notable_hits, collaboration_influence_creator, influence_music, composite_score) %>%
+      filter(creator_name %in% filtered_artist())
   })
   
   output$predictedStars_3_table <- DT::renderDataTable({
