@@ -26,6 +26,7 @@ library(htmlwidgets)
 source("data_prep.R")  # Load your reactive function
 source("Question2_Server.R") # Load Q2 server
 source("Question3_Server.R") # Load Q3 server
+source("Question3_a_Server.R") # Load Q3 server
 
 website_theme <- bs_theme(
   bootswatch = "minty",
@@ -374,6 +375,8 @@ ui <- navbarPage(
                           selectInput("filter_genres_3_t", "Filter by Genre:",
                                       choices = all_genre,
                                       selected = all_genre, multiple = TRUE),
+                          sliderInput("year_range_3t", "Filter by Year:", min = 2000, max = 2040,
+                                      value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
                           selectizeInput("artist_3_t_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_t_2", "Select Artist 2 to Compare:",
@@ -395,8 +398,6 @@ ui <- navbarPage(
                           selectInput("filter_genres_3_a", "Filter by Genre:",
                                       choices = all_genre,
                                       selected = all_genre, multiple = TRUE),
-                          sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
-                                      value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
                           selectizeInput("artist_3_a_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_a_2", "Select Artist 2 to Compare:",
@@ -429,26 +430,26 @@ ui <- navbarPage(
                           htmlOutput("insight_3b")
                         )
                       )
-             ),
-             ######################## Question 3b ##############################
-             tabPanel("Emerging Stars of Oceanus Folk",
-                      sidebarLayout(
-                        sidebarPanel(
-                          checkboxGroupInput("filter_genres_3_a", "Filter by Genre:", 
-                                             choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
-                          sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
-                                      value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
-                          selectInput("selected_artists_3a", "Select Artists to Compare:",
-                                      choices = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-                                      selected = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-                                      multiple = TRUE)
-                        ),
-                        mainPanel(
-                          tableOutput("predictedStars_3c"),
-                          htmlOutput("insight_3c")
-                        )
-                      )
              )
+             ######################## Question 3b ##############################
+             # tabPanel("Emerging Stars of Oceanus Folk",
+             #          sidebarLayout(
+             #            sidebarPanel(
+             #              checkboxGroupInput("filter_genres_3_a", "Filter by Genre:", 
+             #                                 choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
+             #              sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
+             #                          value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
+             #              selectInput("selected_artists_3a", "Select Artists to Compare:",
+             #                          choices = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
+             #                          selected = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
+             #                          multiple = TRUE)
+             #            ),
+             #            mainPanel(
+             #              tableOutput("predictedStars_3c"),
+             #              htmlOutput("insight_3c")
+             #            )
+             #          )
+             # )
            )
   )
 )
@@ -1052,6 +1053,8 @@ server <- function(input, output, session) {
   ############################### Question 3 Table ##################################
   
   Question3_Server(input, output, session)
+  
+  Question3_a_Server(input, output, session)
   
   
   
