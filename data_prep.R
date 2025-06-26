@@ -864,7 +864,7 @@ plot_ly(combined_df,
 
 
 
-##############################Question2b
+##############################Question2b#########################################################
 
 genre_influence_stats <- creator_and_songs_and_influences_and_creators_collaborate %>%
   filter(infuence_music_collaborate != song_to) %>%
@@ -887,4 +887,200 @@ genre_influence_stats %>%
 
 
 
-###################
+###################2c#########################################################
+
+creator_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
+  distinct(creator_name, creator_node_type, song_to, song_genre, influenced_by, influenced_by_genre, influenced_by_creator, notable) %>%
+  group_by(creator_name, creator_node_type) %>%
+  summarize(
+    total_music = n_distinct(song_to),
+    notable_hits = n_distinct(song_to[notable == TRUE]),
+    oceanus_music = n_distinct(song_to[song_genre == "Oceanus Folk"]),
+    oceanus_influenced_by = n_distinct(na.omit(influenced_by[influenced_by_genre == "Oceanus Folk" & creator_name != influenced_by_creator])),
+    total_oceanus_influence = oceanus_music + oceanus_influenced_by
+  ) %>%
+  arrange(desc(total_oceanus_influence)) %>%
+  filter(creator_node_type == "Person", notable_hits > 10) %>%
+  select(-creator_node_type)
+
+creator_influenced_by_stats %>%
+  head(10) %>%
+  rename(
+    `Artist` = creator_name,
+    `Total Music` = total_music,
+    `Notable Hits` = notable_hits,
+    `No. of Oceanus Folk Music` = oceanus_music,
+    `Oceanus Folk Influence` = oceanus_influenced_by,
+    `Oceanus Folk Music & Influence` = total_oceanus_influence
+  ) %>%
+  kable(caption = "Ranking of Oceanus Folk Influence on Artists") %>%
+  kable_styling("striped", full_width = F) %>%
+  scroll_box(height = "200px")
+
+
+###########Question2tab4#########################################################
+
+
+genre_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
+  filter(song_genre == "Oceanus Folk") %>%
+  distinct(song_to, influenced_by, influenced_by_genre) %>%
+  group_by(influenced_by_genre) %>%
+  summarize(
+    total_music = n_distinct(song_to),
+    influenced_by = n_distinct(na.omit(influenced_by))
+  ) %>%
+  arrange(desc(influenced_by))
+
+genre_influenced_by_stats %>%
+  head(10) %>%
+  rename(
+    `Genre` = influenced_by_genre,
+    `Total Influenced Music` = total_music,
+    `Influenced By Oceanus Folk` = influenced_by
+  ) %>%
+  kable(caption = "Ranking of Oceanus Folk Influence on Music Genres") %>%
+  kable_styling("striped", full_width = F) %>%
+  scroll_box(height = "200px")
+
+# Step 1: Prepare data — reverse flow direction: Genre → Oceanus Folk
+sankey_df <- genre_influenced_by_stats %>%
+  mutate(
+    raw_source = influenced_by_genre,
+    target = "Oceanus Folk",
+    value = influenced_by,
+    source = paste0(raw_source, " (", value, ")")
+  ) %>%
+  select(source, target, value) %>%
+  arrange(desc(value)) %>%
+  head(22)  # Top 22 genres influencing Oceanus Folk
+
+# Step 2: Create node list
+nodes <- data.frame(name = unique(c(sankey_df$source, sankey_df$target)))
+
+# Step 3: Create link list with indices
+links <- sankey_df %>%
+  mutate(
+    source = match(source, nodes$name) - 1,
+    target = match(target, nodes$name) - 1
+  )
+
+# Step 4: Add tooltip group (Genre → Oceanus Folk)
+links$group <- paste0(sankey_df$source, " → ", sankey_df$target, ": ", sankey_df$value)
+
+# Step 5: Render Sankey
+p <- sankeyNetwork(
+  Links = links,
+  Nodes = nodes,
+  Source = "source",
+  Target = "target",
+  Value = "value",
+  NodeID = "name",
+  fontSize = 13,
+  nodeWidth = 30,
+  sinksRight = FALSE  # ← Flip layout: sources on right if needed
+)
+
+# Step 6: Add tooltips
+onRender(p, '
+  function(el, x) {
+    d3.select(el)
+      .selectAll(".link")
+      .append("title")
+      .text(function(d) { return d.group; });
+  }
+')
+#####################################################Tab 5#########################################################
+
+# Step 1: Filter influence edges
+influence_edges <- mc1_edges_clean %>%
+  filter(`Edge Type` %in% c("InStyleOf", "CoverOf", "InterpolatesFrom", 
+                            "LyricalReferenceTo", "DirectlySamples"))
+
+# Step 2: Join genre and release date info
+influence_genres <- influence_edges %>%
+  left_join(mc1_nodes_clean %>% select(name, genre), by = c("from" = "name")) %>%
+  rename(source_genre = genre) %>%
+  left_join(mc1_nodes_clean %>% select(name, genre, release_date), by = c("to" = "name")) %>%
+  rename(target_genre = genre, to_release = release_date) %>%
+  left_join(mc1_nodes_clean %>% select(name, release_date), by = c("from" = "name")) %>%
+  rename(from_release = release_date)
+
+# Step 3a: Incoming entropy (genres influencing Oceanus Folk)
+incoming_entropy_yearly <- influence_genres %>%
+  filter(target_genre == "Oceanus Folk", !is.na(source_genre), !is.na(to_release)) %>%
+  mutate(year = as.integer(to_release)) %>%
+  group_by(year, source_genre) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(year) %>%
+  mutate(p = count / sum(count)) %>%
+  summarise(entropy = entropy::entropy(p, unit = "log2")) %>%
+  mutate(direction = "Incoming")
+
+# Step 3b: Outgoing entropy (genres that Oceanus Folk influenced)
+outgoing_entropy_yearly <- influence_genres %>%
+  filter(source_genre == "Oceanus Folk", !is.na(target_genre), !is.na(from_release)) %>%
+  mutate(year = as.integer(from_release)) %>%
+  group_by(year, target_genre) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(year) %>%
+  mutate(p = count / sum(count)) %>%
+  summarise(entropy = entropy::entropy(p, unit = "log2")) %>%
+  mutate(direction = "Outgoing")
+
+# Step 4: Combine and flip outgoing for mirrored effect
+entropy_yearly <- bind_rows(
+  incoming_entropy_yearly,
+  outgoing_entropy_yearly %>% mutate(entropy = -entropy)
+)
+
+# Step 5: Plot mirrored entropy over time with hover text
+entropy_plot <- ggplot(entropy_yearly, aes(
+  x = year, y = entropy, fill = direction,
+  text = paste0(
+    "Year: ", year,
+    "\nDirection: ", direction,
+    "\nEntropy: ", round(abs(entropy), 3), " bits"
+  )
+)) +
+  geom_col(width = 0.8) +
+  geom_hline(yintercept = 0, color = "black") +
+  scale_fill_manual(
+    name = "Entropy Direction",
+    values = c("Incoming" = "lightblue", "Outgoing" = "darkblue")
+  ) +
+  scale_y_continuous(
+    breaks = seq(-4, 4, by = 1),
+    labels = abs(seq(-4, 4, by = 1)),
+    limits = c(-4, 4)
+  ) +
+  labs(
+    title = "Genre Entropy of Oceanus Folk Over Time",
+    x = "Year",
+    y = "Genre Entropy (bits)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Add annotations after setting `max_entropy_val`
+max_entropy_val <- max(abs(entropy_yearly$entropy), na.rm = TRUE)
+
+entropy_plot <- entropy_plot +
+  geom_vline(xintercept = 2024, linetype = "dashed", color = "grey50", linewidth = 0.7) +
+  geom_vline(xintercept = 2028, linetype = "dashed", color = "grey50", linewidth = 0.7) +
+  annotate("text", x = 2024.5, y = max_entropy_val + 0.4,
+           label = "2024: Sailor Shift's Debut",
+           color = "#2E3192", fontface = "bold", size = 3.5, hjust = 1) +
+  annotate("text", x = 2028.5, y = max_entropy_val + 0.8,
+           label = "2028: Sailor Shift's Breakthrough",
+           color = "#2E3192", fontface = "bold", size = 3.5, hjust = 1) +
+  annotate("segment", x = 2024.5, y = max_entropy_val + 0.4,
+           xend = 2024, yend = max_entropy_val - 0.2,
+           arrow = arrow(length = unit(0.2, "cm")), color = "grey50") +
+  annotate("segment", x = 2028.5, y = max_entropy_val + 0.8,
+           xend = 2028, yend = max_entropy_val - 0.2,
+           arrow = arrow(length = unit(0.2, "cm")), color = "grey50")
+
+# Use plotly for interactivity
+ggplotly(entropy_plot, tooltip = "text") %>%
+  layout(legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.2))
+

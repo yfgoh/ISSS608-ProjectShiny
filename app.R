@@ -25,7 +25,7 @@ library(htmlwidgets)
 
 source("data_prep.R")  # Load your reactive function
 source("Question2_Server.R") # Load Q2 server
-source("Question3_Server.R") # Load Q2 server
+source("Question3_Server.R") # Load Q3 server
 
 website_theme <- bs_theme(
   bootswatch = "minty",
@@ -158,187 +158,213 @@ ui <- navbarPage(
   
   ############################### Question 2 #######################################
   ############ Tab 1
-  tabPanel("Influence of Oceanus Folk",
-           tabsetPanel(
-             
-             ################## Tab 1 ##################
-             tabPanel("Trajectory over Time",
-                      sidebarLayout(
-                        sidebarPanel(
-                          width = 2,
-                          sliderInput("year_range_2a", "Year:",
-                                      min = 1990, max = 2040,
-                                      value = c(1990, 2040),
-                                      step = 1,
-                                      round = TRUE,
-                                      sep = "",
-                                      width = "100%",
-                                      animate = FALSE)
-                        ),
-                        mainPanel(
-                          fluidRow(
-                            column(12, withSpinner(plotlyOutput("plot_facet_counts", height = "300px")))
-                          ),
-                          fluidRow(
-                            column(12, withSpinner(plotlyOutput("plot_cumulative", height = "500px")))
-                          ),
-                          fluidRow(
-                            column(12, withSpinner(plotlyOutput("plot_surprise", height = "500px")))
-                          ),
-                          tags$hr(),
-                          htmlOutput("insight_2afinal")
-                        )
-                      )
-             ),
-             
-             ############ Tab 2
-             
-             tabPanel(
-               title = "Outward Influence on other Genres",
-               sidebarLayout(
-                 sidebarPanel(
-                   width = 2,
-                   selectInput("selected_genre",
-                               "Select Genre:",
-                               choices = c("All", sort(unique(genre_influence_stats$song_genre))),
-                               selected = "All",
-                               width = "100%")
-                 ),
-                 
-                 mainPanel(
-                   # Row 1: Interpretation text (on top)
-                   fluidRow(
-                     column(
-                       width = 12,
-                       h4("Interpretation of Sankey Diagram"),
-                       helpText("To determine which genres have been most influenced by Oceanus Folk, all songs and albums were identified. Then, the music (Songs/Albums) that influenced them were obtained to calculate the frequency and percentage of Oceanus Folk's influence across different musical genre. This analysis reveals the genres that show the strongest impact from Oceanus Folk's musical style.")
-                     )
-                   ),
-                   
-                   # Row 2: Sankey diagram (below text)
-                   fluidRow(
-                     column(
-                       width = 12,
-                       h4("Sankey Diagram"),
-                       sankeyNetworkOutput("genreSankey", height = "400px")
-                     )
-                   ),
-                   
-                   br(),
-                   
-                   # Row 3: Data Table
-                   fluidRow(
-                     column(
-                       width = 12,
-                       h4("Data Table: Oceanus Folk Influence by Genre"),
-                       uiOutput("genreTable")
-                     )
-                   )
-                 )  
-               )   
-             ),     
-             
-             ############ Tab 3
-             
-             tabPanel("Outward Influence on other Artists",
-                      fluidPage(
-                        
-                        # Row 1: Interpretation text
-                        fluidRow(
-                          column(
-                            width = 12,
-                            h4("Interpretation of Sankey Diagram"),
-                            helpText("To identify the top artists most influenced by Oceanus Folk, all songs or albums by each artist were identified, along with the songs that influenced them. Those who created Oceanus Folk music or were influenced by the genre were ranked based on total exposure.")
-                          )
-                        ),
-                        
-                        # Row 2: Sankey diagram
-                        fluidRow(
-                          column(
-                            width = 12,
-                            h4("Sankey Diagram: Top Influenced Artists"),
-                            sankeyNetworkOutput("artistSankey", height = "600px")
-                          )
-                        ),
-                        
-                        br(),
-                        
-                        # Row 3: Data Table
-                        fluidRow(
-                          column(
-                            width = 12,
-                            h4("Table: Top Artists Influenced by Oceanus Folk"),
-                            uiOutput("artistInfluenceTable")
-                          )
-                        )
-                        
-                      ) # end fluidPage
-             ),
-             ############ Tab 4
-             
-             tabPanel(
-               title = "Inward Influence from other Genres",
-               sidebarLayout(
-                 sidebarPanel(
-                   width = 2,
-                   selectInput("selected_genre",
-                               "Select Genre:",
-                               choices = c("All", sort(unique(genre_influence_stats$song_genre))),
-                               selected = "All",
-                               width = "100%")
-                 ),
-                 
-                 mainPanel(
-                   # Row 1: Interpretation text (on top)
-                   fluidRow(
-                     column(
-                       width = 12,
-                       h4("Interpretation of Sankey Diagram"),
-                       helpText("To determine which genres have most influenced Oceanus Folk, all Oceanus Folk songs/albums were analyzed along with the genres of songs that influenced them. This reveals the external genres that shaped Oceanus Folk's evolution.")
-                     )
-                   ),
-                   
-                   # Row 2: Sankey diagram
-                   fluidRow(
-                     column(
-                       width = 12,
-                       h4("Sankey Diagram"),
-                       sankeyNetworkOutput("influencerSankey", height = "400px")
-                     )
-                   ),
-                   
-                   br(),
-                   
-                   # Row 3: Data Table
-                   fluidRow(
-                     column(
-                       width = 12,
-                       h4("Data Table: Genres that Influenced Oceanus Folk"),
-                       uiOutput("influencerGenreTable")
-                     )
-                   )
-                 )
-               ) 
-             ),
-             
-             ############ Tab 5
-             
-             tabPanel("Evolution with Rise of Sailor Shift",
-                      sidebarLayout(
-                        sidebarPanel(
-                          sliderInput("year_range_2a_sailor", "Filter by Year:", min = 1980, max = 2040,
-                                      value = c(1980, 2040), step = 1, sep = "", animate = TRUE)
-                        ),
-                        mainPanel(
-                          plotOutput("evolvingOceanusPlot_2c3", height = "400px"),
-                          htmlOutput("insight_2c3")
-                        )
-                      )
-             )
-           )
-  ),
-  
-  ############################### Question 3 #######################################
+  tabPanel(
+    "Influence of Oceanus Folk",
+    tabsetPanel(
+      ################## Tab 1 ##################
+      tabPanel(
+        "Trajectory over Time",
+        sidebarLayout(
+          sidebarPanel(
+            width = 2,
+            sliderInput(
+              "year_range_2a",
+              "Year:",
+              min = 1990,
+              max = 2040,
+              value = c(1990, 2040),
+              step = 1,
+              round = TRUE,
+              sep = "",
+              width = "100%",
+              animate = FALSE
+            ),
+            helpText("This dual slider lets you explore the influence over the selected periods.")
+          ),
+          mainPanel(
+            fluidRow(column(12, withSpinner(
+              plotlyOutput("plot_facet_counts", height = "300px")
+            ))),
+            fluidRow(column(12, withSpinner(
+              plotlyOutput("plot_cumulative", height = "500px")
+            ))),
+            fluidRow(column(12, withSpinner(
+              plotlyOutput("plot_surprise", height = "500px")
+            ))),
+            tags$hr(),
+            htmlOutput("insight_2afinal")
+          )
+        )
+      ),
+      
+      ############ Tab 2
+      
+      tabPanel(
+        title = "Outward Influence on other Genres",
+        sidebarLayout(
+          sidebarPanel(
+            width = 2,
+            selectInput(
+              "selected_genre",
+              "Select Genre:",
+              choices = c("All", sort(unique(genre_influence_stats$song_genre))),
+              selected = "All",
+              width = "100%"
+            ),
+            helpText("Select a genre to view how Oceanus Folk has influenced it.")
+          ),
+        
+        mainPanel(
+          # Row 1: Interpretation text (on top)
+          fluidRow(column(
+            width = 12,
+            h4("Interpretation of Sankey Diagram"),
+            helpText(
+              "To determine which genres have been most influenced by Oceanus Folk, all songs and albums were identified. Then, the music (Songs/Albums) that influenced them were obtained to calculate the frequency and percentage of Oceanus Folk's influence across different musical genre. This analysis reveals the genres that show the strongest impact from Oceanus Folk's musical style."
+            )
+          )),
+          br(),
+          # Row 2: Sankey diagram (below text)
+          fluidRow(column(
+            width = 12,
+            h4("Sankey Diagram"),
+            sankeyNetworkOutput("genreSankey", height = "400px")
+          )),
+          
+          br(),
+          
+          fluidRow(column(
+            width = 12,
+            h4("Data Table: Oceanus Folk Influence by Genre"),
+            uiOutput("genreTable"),
+            helpText("Total_Music = Total no. of music under the genre."),
+            helpText("Oceanus_Influence = Number of influenced music by Oceanus Folk."),
+            helpText("Total_Influenced = Number of influenced music in the genre."),
+            helpText("Perc_Oceanus = Percentage of music influenced by Oceanus Folk.")
+          ))
+        )
+      )),
+      
+      ############ Tab 3
+      
+      tabPanel(
+        "Outward Influence on other Artists",
+        sidebarLayout(
+          sidebarPanel(
+            width = 2,
+            selectInput(
+              "selected_artist",
+              "Select Artist:",
+              choices = c("All", sort(unique(creator_influenced_by_stats$creator_name))),
+              selected = "All",
+              width = "100%"
+            ),
+            helpText("Select an artist to view how much they have been influenced by Oceanus Folk.")
+          ),
+          
+          mainPanel(
+            # Row 1: Interpretation text
+            fluidRow(column(
+              width = 12,
+              h4("Interpretation of Sankey Diagram"),
+              helpText(
+                "To identify the top artists most influenced by Oceanus Folk, all artists (persons or musical groups) who either (a) created Oceanus Folk music (songs/albums) or (b) were influenced by the genre were identified. Then, all music produced by these artists, along with the musical works that influenced their creations, was counted to reveal those who were most influenced."
+              )
+            )),
+            br(),
+            # Row 2: Sankey diagram
+            fluidRow(column(
+              width = 12,
+              h4("Sankey Diagram: Top Influenced Artists"),
+              sankeyNetworkOutput("artistSankey", height = "600px")
+            )),
+            
+            br(),
+            
+            # Row 3: Data Table
+            fluidRow(column(
+              width = 12,
+              h4("Table: Top Artists Influenced by Oceanus Folk"),
+              uiOutput("artistInfluenceTable")
+            ))
+          )
+        )
+      ),
+      ############ Tab 4
+      
+      tabPanel(
+        title = "Inward Influence from other Genres",
+        sidebarLayout(
+          sidebarPanel(
+            width = 2,
+            selectInput(
+              "selected_inward_influence_genre",
+              "Select Genre:",
+              choices = c("All", sort(unique(genre_influence_stats$song_genre))),
+              selected = "All",
+              width = "100%"
+            ),
+            helpText("Select a genre to view how it has influenced Oceanus Folk.")
+          ),
+       
+        mainPanel(
+          # Row 1: Interpretation text (on top)
+          fluidRow(column(
+            width = 12,
+            h4("Interpretation of Sankey Diagram"),
+            helpText(
+              "To determine which genres have most influenced Oceanus Folk, all Oceanus Folk songs/albums were analyzed along with the genres of songs that influenced them. This reveals the external genres that shaped Oceanus Folk's evolution."
+            )
+          )),
+          br(),
+          # Row 2: Sankey diagram
+          fluidRow(column(
+            width = 12,
+            h4("Sankey Diagram"),
+            sankeyNetworkOutput("influencerSankey", height = "400px")
+          )),
+          
+          br(),
+          
+          # Row 3: Data Table
+          fluidRow(column(
+            width = 12,
+            h4("Data Table: Genres that Influenced Oceanus Folk"),
+            uiOutput("influencerGenreTable")
+          ))
+        )
+      )),
+      
+      ############ Tab 5
+      
+      tabPanel(
+        "Evolution with Rise of Sailor Shift",
+        sidebarLayout(
+          sidebarPanel(
+            sliderInput(
+              inputId = "entropy_max_year",
+              label = "Animate from 1990 to 2040:",
+              min = 1990,
+              max = 2040,
+              value = 1990,
+              step = 5,
+              sep = "",
+              animate = animationOptions(interval = 1000, loop = FALSE)
+            ),
+            helpText(
+              "This animated slider lets you explore how genre entropy evolved over time."
+            )
+          ),
+          mainPanel(
+            plotlyOutput("entropyPlot", height = "400px"),
+            htmlOutput("entropy_description") 
+          )
+        )
+      )  # end of tabPanel Tab 5
+    )    # ← CLOSE the tabsetPanel HERE!
+  ), 
+    
+    ############################### Question 3 #######################################
   tabPanel("Oceanus Folk's Rising Star",
            tabsetPanel(
              ######################## Question 3 Table ############################
