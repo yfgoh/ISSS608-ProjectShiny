@@ -346,8 +346,7 @@ Question2_Server <- function(input, output, session) {
           
           "<p><b>Music releases (blue line)</b> generally showed lower surprise scores, confirming that the number of releases was not the main driver of influence.</p>",
           
-          "<p><b>Conclusion:</b> While the overall trend shows long-term growth, Bayesian Surprise confirms that Oceanus Folk’s rise was intermittent, ",
-          "driven by artist breakthroughs. These bursts sustained influence momentum over time.</p>"
+          "<p><b>Conclusion:</b> While the overall trend shows long-term growth, Bayesian Surprise confirms that Oceanus Folk’s rise was intermittent. These bursts sustained influence momentum over time.</p>"
         ))
       })
 

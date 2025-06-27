@@ -85,7 +85,8 @@ ui <- navbarPage(
                                       selected = c("Creator Of", "Influenced By"), multiple = TRUE)
                         ),
                         mainPanel(
-                          h5("Explore Sailor Shift's work — Simply hover your mouse over each node to learn more"),
+                          br(),
+                          h5("Hover your mouse over the nodes below to explore Sailor Shift's work"),
                           withSpinner(girafeOutput("sailorWorkPlot", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("sailorBio"),
@@ -107,8 +108,9 @@ ui <- navbarPage(
                                       selected = c("Creator Of", "Influenced By", "Member Of"), multiple = TRUE)
                         ),
                         mainPanel(
-                          h4("Who has she been most influenced by over time?"),
-                          h5("The visualisation shows all the Person and Musical Group that have influenced Sailor Shift's work."),
+                          br(),
+                          h4("Who has Sailor Shift been most influenced by over time?"),
+                          h5("The visualisation shows all Persons and Musical Groups that have influenced Sailor Shift's work."),
                           withSpinner(girafeOutput("influencedByPlot", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1a")
@@ -127,8 +129,9 @@ ui <- navbarPage(
                                       selected = c("Creator Of", "Influenced By", "Member Of"), multiple = TRUE)
                         ),
                         mainPanel(
-                          h4("Who has she collaborated with and directly or indirectly influenced?"),
-                          h5("Learn more about her collaborators by hovering your mouse over the nodes"),
+                          br(),
+                          h4("Who has Sailor Shift collaborated with and directly or indirectly influenced?"),
+                          h5("Hover your mouse over the nodes below to learn more about her collaborators"),
                           withSpinner(girafeOutput("collabInfluenceNetwork", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1b")
@@ -140,16 +143,17 @@ ui <- navbarPage(
                       sidebarLayout(
                         sidebarPanel(
                           sliderInput("degree_sep", "Degree of Separation:", min = 1, max = 13,
-                                      value = 13, step = 1, sep = "", animate = TRUE),
+                                      value = 13, step = 1, sep = "", animate = animationOptions(interval = 2000, loop = FALSE)),
                           checkboxInput(
                             inputId = "include_infinite",
                             label = "Include Infinite (Unreachable) Nodes",
                             value = TRUE
                           ),
+                          helpText("Adjust the degree of separation to uncover how artists are interconnected across the network"),
                         ),
                         mainPanel(
-                          h4("How has she influenced collaborators of the broader Oceanus Folk community?"),
-                          h5("Adjust the degree of separation to uncover how artists are interconnected across the network"),
+                          br(),
+                          h4("How has Sailor Shift influenced collaborators of the broader Oceanus Folk community?"),
                           withSpinner(girafeOutput("broadInfluencePlot", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1c")
@@ -169,7 +173,6 @@ ui <- navbarPage(
         "Trajectory over Time",
         sidebarLayout(
           sidebarPanel(
-            width = 2,
             sliderInput(
               "year_range_2a",
               "Year:",
@@ -206,7 +209,6 @@ ui <- navbarPage(
         title = "Outward Influence on other Genres",
         sidebarLayout(
           sidebarPanel(
-            width = 2,
             selectInput(
               "selected_genre",
               "Select Genre:",
@@ -238,7 +240,7 @@ ui <- navbarPage(
           
           fluidRow(column(
             width = 12,
-            h4("Data Table: Oceanus Folk Influence by Genre"),
+            h4("Table: Oceanus Folk Influence by Genre"),
             uiOutput("genreTable"),
             helpText("Total_Music = Total no. of music under the genre."),
             helpText("Oceanus_Influence = Number of influenced music by Oceanus Folk."),
@@ -254,7 +256,6 @@ ui <- navbarPage(
         "Outward Influence on other Artists",
         sidebarLayout(
           sidebarPanel(
-            width = 2,
             selectInput(
               "selected_artist",
               "Select Artist:",
@@ -284,7 +285,7 @@ ui <- navbarPage(
             
             br(),
             
-            # Row 3: Data Table
+            # Row 3: Table
             fluidRow(column(
               width = 12,
               h4("Table: Top Artists Influenced by Oceanus Folk"),
@@ -299,7 +300,6 @@ ui <- navbarPage(
         title = "Inward Influence from other Genres",
         sidebarLayout(
           sidebarPanel(
-            width = 2,
             selectInput(
               "selected_inward_influence_genre",
               "Select Genre:",
@@ -329,10 +329,10 @@ ui <- navbarPage(
           
           br(),
           
-          # Row 3: Data Table
+          # Row 3: Table
           fluidRow(column(
             width = 12,
-            h4("Data Table: Genres that Influenced Oceanus Folk"),
+            h4("Table: Genres that Influenced Oceanus Folk"),
             uiOutput("influencerGenreTable")
           ))
         )
@@ -346,10 +346,10 @@ ui <- navbarPage(
           sidebarPanel(
             sliderInput(
               inputId = "entropy_max_year",
-              label = "Animate from 1990 to 2040:",
+              label = "Year",
               min = 1990,
               max = 2040,
-              value = 1990,
+              value = 2040,
               step = 5,
               sep = "",
               animate = animationOptions(interval = 1000, loop = FALSE)
