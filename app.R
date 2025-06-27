@@ -22,6 +22,7 @@ library(shinyjs)
 library(plotly)
 library(networkD3)
 library(htmlwidgets)
+library(fmsb)
 
 source("data_prep.R")  # Load your reactive function
 source("Question1_Server.R") # Load Q1 server
@@ -388,7 +389,19 @@ ui <- navbarPage(
                         mainPanel(
                           withSpinner(DT::dataTableOutput("predictedStars_3_table")),
                           tags$hr(),
-                          htmlOutput("insight_1c")
+                          fluidRow(
+                            column(width = 4,
+                                   withSpinner(plotOutput("predictedStars_3_radar_1", height = "350px"))
+                            ),
+                            column(width = 4,
+                                   withSpinner(plotOutput("predictedStars_3_radar_2", height = "350px"))
+                            ),
+                            column(width = 4,
+                                   withSpinner(plotOutput("predictedStars_3_radar_3", height = "350px"))
+                            )
+                          ),
+                          tags$hr(),
+                          htmlOutput("insight_3_t")
                         )
                       )
              ),
@@ -431,26 +444,26 @@ ui <- navbarPage(
                           htmlOutput("insight_3a")
                         )
                       )
-             )
+             ),
              ######################## Question 3b ##############################
-             # tabPanel("Emerging Stars of Oceanus Folk",
-             #          sidebarLayout(
-             #            sidebarPanel(
-             #              checkboxGroupInput("filter_genres_3_b", "Filter by Genre:", 
-             #                                 choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
-             #              sliderInput("year_range_3_b", "Filter by Year:", min = 2000, max = 2040,
-             #                          value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
-             #              selectInput("selected_artists_3_b", "Select Artists to Compare:",
-             #                          choices = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-             #                          selected = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-             #                          multiple = TRUE)
-             #            ),
-             #            mainPanel(
-             #              tableOutput("predictedStars_3c"),
-             #              htmlOutput("insight_3c")
-             #            )
-             #          )
-             # )
+              tabPanel("Emerging Stars of Oceanus Folk",
+                       sidebarLayout(
+                         sidebarPanel(
+                           checkboxGroupInput("filter_genres_3_b", "Filter by Genre:", 
+                                              choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
+                           sliderInput("year_range_3_b", "Filter by Year:", min = 2000, max = 2040,
+                                       value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
+                           selectInput("selected_artists_3_b", "Select Artists to Compare:",
+                                       choices = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
+                                       selected = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
+                                       multiple = TRUE)
+                         ),
+                         mainPanel(
+                           tableOutput("predictedStars_3c"),
+                           htmlOutput("insight_3c")
+                         )
+                       )
+              )
            )
   )
 )

@@ -74,9 +74,142 @@ Question3_Server <- function(input, output, session) {
         scrollX = TRUE
       ),
       rownames = FALSE,
-      class = "stripe hover",
+      class = "compact stripe hover",
       escape = FALSE,
       extensions = 'Scroller'
     )
+  })
+  
+  ############################### Question 3 Radar ##################################
+  
+  # Extract all creators' relevant data for scaling
+  all_scaled <- reactive({
+    creator_rankings() %>%
+    select(creator_name, total_songs, notable_hits, collaboration_influence_creator, influence_music) %>%
+    mutate(across(-creator_name, ~ scales::rescale(., to = c(0, 100)))) %>%
+    column_to_rownames("creator_name") 
+  })
+  
+  ############################### Question 3 Radar 1 #################################
+  
+  output$predictedStars_3_radar_1 <- renderPlot({
+    chosen_creator_1 = input$artist_3_t_1
+    
+    # Filter the data for Sailor Shift
+    creator_1_data <- creator_rankings() %>%
+      filter(creator_name == chosen_creator_1) %>%
+      select(total_songs, notable_hits, collaboration_influence_creator, influence_music)
+    
+    # Extract scaled values for Sailor Shift
+    creator_1_scaled <- all_scaled()[chosen_creator_1, , drop = FALSE]
+    
+    # Construct radar input with min and max for the chart frame
+    radar_matrix_1 <- rbind(
+      rep(100, ncol(creator_1_scaled)),  # Max values
+      rep(0, ncol(creator_1_scaled)),    # Min values
+      creator_1_scaled                   # Actual values
+    )
+    
+    # Plot Radar Chart
+    par(mar = c(2, 2, 4, 2), oma = c(1, 1, 3, 1))
+    
+    radarchart(radar_matrix_1,
+               axistype = 1,
+               pcol = "#0027EA",
+               pfcol = adjustcolor("#0027EA", alpha.f = 0.3),
+               plwd = 2,
+               cglcol = "grey",
+               cglty = 1,
+               cglwd = 0.8,
+               axislabcol = "black",
+               caxislabels = paste0(seq(0, 100, 25), "%"),
+               vlcex = 0.85,
+               title = paste("Star Profile: ", chosen_creator_1),
+               calcex = 0.8,
+               cex.main = 1.3,
+               vlabels = c("Total Music", "Notable\nHits", "Artist Influ & Colab", "Music\nInfluenced"),
+               centerzero = TRUE)
+  })
+  
+  ############################### Question 3 Radar 2 #################################
+  
+  output$predictedStars_3_radar_2 <- renderPlot({
+    chosen_creator_2 = input$artist_3_t_2
+    
+    # Filter the data for Sailor Shift
+    creator_2_data <- creator_rankings() %>%
+      filter(creator_name == chosen_creator_2) %>%
+      select(total_songs, notable_hits, collaboration_influence_creator, influence_music)
+    
+    # Extract scaled values for Sailor Shift
+    creator_2_scaled <- all_scaled()[chosen_creator_2, , drop = FALSE]
+    
+    # Construct radar input with min and max for the chart frame
+    radar_matrix_2 <- rbind(
+      rep(100, ncol(creator_2_scaled)),  # Max values
+      rep(0, ncol(creator_2_scaled)),    # Min values
+      creator_2_scaled                   # Actual values
+    )
+    
+    # Plot Radar Chart
+    par(mar = c(2, 2, 4, 2), oma = c(1, 1, 3, 1))
+    
+    radarchart(radar_matrix_2,
+               axistype = 1,
+               pcol = "#FF5757",
+               pfcol = adjustcolor("#FF5757", alpha.f = 0.3),
+               plwd = 2,
+               cglcol = "grey",
+               cglty = 1,
+               cglwd = 0.8,
+               axislabcol = "black",
+               caxislabels = paste0(seq(0, 100, 25), "%"),
+               vlcex = 0.85,
+               title = paste("Star Profile: ", chosen_creator_2),
+               calcex = 0.8,
+               cex.main = 1.3,
+               vlabels = c("Total Music", "Notable\nHits", "Artist Influ & Colab", "Music\nInfluenced"),
+               centerzero = TRUE)
+  })
+  
+  ############################### Question 3 Radar 3 #################################
+  
+  output$predictedStars_3_radar_3 <- renderPlot({
+    chosen_creator_3 = input$artist_3_t_3
+    
+    # Filter the data for Sailor Shift
+    creator_3_data <- creator_rankings() %>%
+      filter(creator_name == chosen_creator_3) %>%
+      select(total_songs, notable_hits, collaboration_influence_creator, influence_music)
+    
+    # Extract scaled values for Sailor Shift
+    creator_3_scaled <- all_scaled()[chosen_creator_3, , drop = FALSE]
+    
+    # Construct radar input with min and max for the chart frame
+    radar_matrix_3 <- rbind(
+      rep(100, ncol(creator_3_scaled)),  # Max values
+      rep(0, ncol(creator_3_scaled)),    # Min values
+      creator_3_scaled                   # Actual values
+    )
+    
+    # Plot Radar Chart
+    par(mar = c(2, 2, 4, 2), oma = c(1, 1, 3, 1))
+    
+    radarchart(radar_matrix_3,
+               axistype = 1,
+               pcol = "#A45200",
+               pfcol = adjustcolor("#A45200", alpha.f = 0.3),
+               plwd = 2,
+               cglcol = "grey",
+               cglty = 1,
+               cglwd = 0.8,
+               axislabcol = "black",
+               caxislabels = paste0(seq(0, 100, 25), "%"),
+               vlcex = 0.85,
+               title = paste("Star Profile: ", chosen_creator_3),
+               calcex = 0.8,
+               cex.main = 1.3,
+               vlabels = c("Total Music", "Notable\nHits", "Artist Influ & Colab", "Music\nInfluenced"),
+               centerzero = TRUE)
   })
 }
