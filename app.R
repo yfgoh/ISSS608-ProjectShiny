@@ -376,8 +376,8 @@ ui <- navbarPage(
                           selectInput("filter_genres_3_t", "Filter by Genre:",
                                       choices = all_genre,
                                       selected = all_genre, multiple = TRUE),
-                          sliderInput("year_range_3t", "Filter by Year:", min = 2000, max = 2040,
-                                      value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
+                          sliderInput("year_range_3_t", "Filter by Year:", min = 1990, max = 2040,
+                                      value = c(1990, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE),
                           selectizeInput("artist_3_t_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_t_2", "Select Artist 2 to Compare:",
@@ -428,7 +428,7 @@ ui <- navbarPage(
                             )
                           ),
                           tags$hr(),
-                          htmlOutput("insight_3b")
+                          htmlOutput("insight_3a")
                         )
                       )
              )
@@ -436,11 +436,11 @@ ui <- navbarPage(
              # tabPanel("Emerging Stars of Oceanus Folk",
              #          sidebarLayout(
              #            sidebarPanel(
-             #              checkboxGroupInput("filter_genres_3_a", "Filter by Genre:", 
+             #              checkboxGroupInput("filter_genres_3_b", "Filter by Genre:", 
              #                                 choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
-             #              sliderInput("year_range_3a", "Filter by Year:", min = 2000, max = 2040,
+             #              sliderInput("year_range_3_b", "Filter by Year:", min = 2000, max = 2040,
              #                          value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
-             #              selectInput("selected_artists_3a", "Select Artists to Compare:",
+             #              selectInput("selected_artists_3_b", "Select Artists to Compare:",
              #                          choices = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
              #                          selected = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
              #                          multiple = TRUE)
