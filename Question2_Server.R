@@ -341,7 +341,7 @@ Question2_Server <- function(input, output, session) {
           "<p>For example, the sharp peaks in surprise scores for <b>new influenced artists (green line)</b> in years like 2004, 2010, 2013, 2017, and especially 2023 then 2030 ",
           "suggest that Oceanus Folk influence had waves of breakthroughs, not slow accumulation.</p>",
           
-          "<p><b>Influenced Songs/Albums (red line)</b> increased in 2017, spiked in 2023, and sustained growth from 2030–2033, ",
+          "<p><b>Influenced Songs/Albums (red line)</b> increased in 2017, spiked in 2023, and some sustained growth from 2030–2031, ",
           "highlighting how Sailor’s debut and breakthrough catalysed the genre’s influence.</p>",
           
           "<p><b>Music releases (blue line)</b> generally showed lower surprise scores, confirming that the number of releases was not the main driver of influence.</p>",
