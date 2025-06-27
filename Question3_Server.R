@@ -1,13 +1,14 @@
 Question3_Server <- function(input, output, session) {
   ############################### Question 3 table ##################################
+  debounced_genres <- debounce(reactive(input$filter_genres_3_t), millis = 500)
+  
   filtered_artist_3_t <- reactive({
     creator_and_songs %>%
-      filter(song_genre %in% c(input$filter_genres_3_t),
+      filter(song_genre %in% debounced_genres(),
              creator_node_type %in% c("Person", "MusicalGroup")) %>%
       pull(creator_name) %>%
       unique()
   })
-  
 
   observe({
     updateSelectizeInput(session, "artist_3_t_1", choices = filtered_artist_3_t(), selected = "Sailor Shift", server = TRUE)
@@ -15,24 +16,12 @@ Question3_Server <- function(input, output, session) {
     updateSelectizeInput(session, "artist_3_t_3", choices = filtered_artist_3_t(), selected = "Min Fu", server = TRUE)
   })
   
-
   # Data Preparation
-  
-  # Step 1: To highlight songs that the creator influence that is not produced by same creator
-  creator_influence_lists <- creator_and_songs_and_influences_and_creators_collaborate %>%
-    group_by(creator_name, creator_node_type, song_to, song_name, creator_release_date, song_genre, notable) %>%
-    distinct () %>%
-    summarize(
-      unique_collaborate = list(unique(na.omit(infuence_music_collaborate[creator_from != influence_creator & `Edge Colour` == "Creator Of"]))),
-      unique_influence_creators = list(unique(na.omit(influence_creator[creator_from != influence_creator & `Edge Colour` == "Influenced By"]))),
-      unique_influence_music = list(unique(na.omit(infuence_music_collaborate[creator_from != influence_creator & !is.na(influence_genre)])))
-    ) 
-  
   filtered_creator_influence_lists <- reactive({
     creator_influence_lists %>%
-    filter(creator_name %in% filtered_artist_3_t(),
-           creator_release_date >= input$year_range_3_t[1],
-           creator_release_date <= input$year_range_3_t[2])
+      filter(song_genre %in% debounced_genres(),
+             creator_release_date >= input$year_range_3_t[1],
+             creator_release_date <= input$year_range_3_t[2])
   })
 
   # Step 2: Aggregate unique influences per creator

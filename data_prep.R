@@ -310,6 +310,16 @@ creator_and_songs_and_influences_and_creators_collaborate <- creator_and_songs_a
     )
   )
 
+# Step 1: To highlight songs that the creator influence that is not produced by same creator
+creator_influence_lists <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    group_by(creator_name, creator_node_type, song_to, song_name, creator_release_date, song_genre, notable) %>%
+    distinct() %>%
+    summarize(
+      unique_collaborate = list(unique(na.omit(infuence_music_collaborate[creator_from != influence_creator & `Edge Colour` == "Creator Of"]))),
+      unique_influence_creators = list(unique(na.omit(influence_creator[creator_from != influence_creator & `Edge Colour` == "Influenced By"]))),
+      unique_influence_music = list(unique(na.omit(infuence_music_collaborate[creator_from != influence_creator & !is.na(influence_genre)])))
+    )
+
 # Supporting lists for UI
 all_genre <- creator_music$genre %>%
   unique()

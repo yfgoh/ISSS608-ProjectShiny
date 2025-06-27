@@ -1,9 +1,11 @@
 Question3_a_Server <- function(input, output, session) {
   
   ############################### Question 3a ##################################
+  debounced_genres <- debounce(reactive(input$filter_genres_3_a), millis = 500)
+  
   filtered_artist_3_a <- reactive({
     creator_and_songs %>%
-      filter(song_genre %in% input$filter_genres_3_a,
+      filter(song_genre %in% debounced_genres(),
              creator_node_type %in% c("Person", "MusicalGroup")) %>%
       pull(creator_name) %>%
       unique()
