@@ -188,15 +188,10 @@ ui <- navbarPage(
             helpText("This dual slider lets you explore the influence over the selected periods.")
           ),
           mainPanel(
-            fluidRow(column(12, withSpinner(
-              plotlyOutput("plot_facet_counts", height = "300px")
-            ))),
-            fluidRow(column(12, withSpinner(
-              plotlyOutput("plot_cumulative", height = "500px")
-            ))),
-            fluidRow(column(12, withSpinner(
-              plotlyOutput("plot_surprise", height = "500px")
-            ))),
+            fluidRow(
+              column(12, withSpinner(plotlyOutput("plot_facet_counts", height = "300px"))),
+              column(12, withSpinner(plotlyOutput("plot_combined_2a", height = "600px")))
+            ),
             tags$hr(),
             htmlOutput("insight_2afinal")
           )
@@ -218,37 +213,35 @@ ui <- navbarPage(
             ),
             helpText("Select a genre to view how Oceanus Folk has influenced it.")
           ),
-        
-        mainPanel(
-          # Row 1: Interpretation text (on top)
-          fluidRow(column(
-            width = 12,
-            h4("Interpretation of Sankey Diagram"),
-            helpText(
-              "To determine which genres have been most influenced by Oceanus Folk, all songs and albums were identified. Then, the music (Songs/Albums) that influenced them were obtained to calculate the frequency and percentage of Oceanus Folk's influence across different musical genre. This analysis reveals the genres that show the strongest impact from Oceanus Folk's musical style."
-            )
-          )),
-          br(),
-          # Row 2: Sankey diagram (below text)
-          fluidRow(column(
-            width = 12,
-            h4("Sankey Diagram"),
-            sankeyNetworkOutput("genreSankey", height = "400px")
-          )),
           
-          br(),
-          
-          fluidRow(column(
-            width = 12,
-            h4("Table: Oceanus Folk Influence by Genre"),
-            uiOutput("genreTable"),
-            helpText("Total_Music = Total no. of music under the genre."),
-            helpText("Oceanus_Influence = Number of influenced music by Oceanus Folk."),
-            helpText("Total_Influenced = Number of influenced music in the genre."),
-            helpText("Perc_Oceanus = Percentage of music influenced by Oceanus Folk.")
-          ))
-        )
-      )),
+          mainPanel(
+            # Row 1: Interpretation text (on top)
+            fluidRow(column(
+              width = 12,
+              h4("Sankey Diagram: Top Influenced Genre"),
+              helpText(
+                "To determine which genres have been most influenced by Oceanus Folk, all songs and albums were identified. Then, the music (Songs/Albums) that influenced them were obtained to calculate the frequency and percentage of Oceanus Folk's influence across different musical genre. This analysis reveals the genres that show the strongest impact from Oceanus Folk's musical style."
+              )
+            )),
+            br(),
+            # Row 2: Sankey diagram (below text)
+            fluidRow(column(
+              width = 12,
+              sankeyNetworkOutput("genreSankey", height = "400px")
+            )),
+            
+            br(),
+            
+            fluidRow(column(
+              width = 12,
+              DT::dataTableOutput("genreTable"),
+              helpText("Legend: Total_Music = Total no. of music under the genre."),
+              helpText("Oceanus_Influence = Number of influenced music by Oceanus Folk."),
+              helpText("Total_Influenced = Number of influenced music in the genre."),
+              helpText("Perc_Oceanus = Percentage of music influenced by Oceanus Folk.")
+            ))
+          )
+        )),
       
       ############ Tab 3
       
@@ -270,16 +263,15 @@ ui <- navbarPage(
             # Row 1: Interpretation text
             fluidRow(column(
               width = 12,
-              h4("Interpretation of Sankey Diagram"),
+              h4("Sankey Diagram: Top Influenced Artists"),
               helpText(
-                "To identify the top artists most influenced by Oceanus Folk, all artists (persons or musical groups) who either (a) created Oceanus Folk music (songs/albums) or (b) were influenced by the genre were identified. Then, all music produced by these artists, along with the musical works that influenced their creations, was counted to reveal those who were most influenced."
+                "To identify the top artists most influenced by Oceanus Folk, all artists (persons or musical groups) who either (a) created Oceanus Folk music (songs/albums) or (b) were influenced by the genre were identified."
               )
             )),
             br(),
             # Row 2: Sankey diagram
             fluidRow(column(
               width = 12,
-              h4("Sankey Diagram: Top Influenced Artists"),
               sankeyNetworkOutput("artistSankey", height = "600px")
             )),
             
@@ -288,8 +280,7 @@ ui <- navbarPage(
             # Row 3: Table
             fluidRow(column(
               width = 12,
-              h4("Table: Top Artists Influenced by Oceanus Folk"),
-              uiOutput("artistInfluenceTable")
+              DT::dataTableOutput("artistInfluenceTable")
             ))
           )
         )
@@ -314,7 +305,7 @@ ui <- navbarPage(
           # Row 1: Interpretation text (on top)
           fluidRow(column(
             width = 12,
-            h4("Interpretation of Sankey Diagram"),
+            h4("Sankey Diagram: Genres that Influenced Oceanus Folk"),
             helpText(
               "To determine which genres have most influenced Oceanus Folk, all Oceanus Folk songs/albums were analyzed along with the genres of songs that influenced them. This reveals the external genres that shaped Oceanus Folk's evolution."
             )
@@ -323,7 +314,6 @@ ui <- navbarPage(
           # Row 2: Sankey diagram
           fluidRow(column(
             width = 12,
-            h4("Sankey Diagram"),
             sankeyNetworkOutput("influencerSankey", height = "400px")
           )),
           
@@ -332,8 +322,7 @@ ui <- navbarPage(
           # Row 3: Table
           fluidRow(column(
             width = 12,
-            h4("Table: Genres that Influenced Oceanus Folk"),
-            uiOutput("influencerGenreTable")
+            DT::dataTableOutput("influencerGenreTable")
           ))
         )
       )),
@@ -350,9 +339,9 @@ ui <- navbarPage(
               min = 1990,
               max = 2040,
               value = 2040,
-              step = 5,
+              step = 1,
               sep = "",
-              animate = animationOptions(interval = 1000, loop = FALSE)
+              animate = animationOptions(interval = 100, loop = FALSE)
             ),
             helpText(
               "This animated slider lets you explore how genre entropy evolved over time."
@@ -374,21 +363,20 @@ ui <- navbarPage(
              tabPanel("Artist's Star Factor",
                       sidebarLayout(
                         sidebarPanel(
-                          selectInput("filter_genres_3_t", "Filter by Genre:",
-                                      choices = all_genre,
-                                      selected = all_genre, multiple = TRUE),
-                          sliderInput("year_range_3_t", "Filter by Year:", min = 1990, max = 2040,
-                                      value = c(1990, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE),
                           selectizeInput("artist_3_t_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_t_2", "Select Artist 2 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_t_3", "Select Artist 3 to Compare:",
-                                         choices = NULL, selected = NULL, multiple = FALSE)
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectInput("filter_genres_3_t", "Filter by Genre:",
+                                      choices = all_genre,
+                                      selected = all_genre, multiple = TRUE),
+                          sliderInput("year_range_3_t", "Filter by Year:", min = 1990, max = 2040,
+                                      value = c(1990, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE)
                         ),
                         mainPanel(
-                          withSpinner(DT::dataTableOutput("predictedStars_3_table")),
-                          tags$hr(),
+                          # First: Radar Plots
                           fluidRow(
                             column(width = 4,
                                    withSpinner(plotOutput("predictedStars_3_radar_1", height = "350px"))
@@ -401,6 +389,12 @@ ui <- navbarPage(
                             )
                           ),
                           tags$hr(),
+                          
+                          # Then: Table
+                          withSpinner(DT::dataTableOutput("predictedStars_3_table")),
+                          tags$hr(),
+                          
+                          # Insights
                           htmlOutput("insight_3_t")
                         )
                       )
@@ -409,34 +403,34 @@ ui <- navbarPage(
              tabPanel("Career Trajectories & Influence Comparison",
                       sidebarLayout(
                         sidebarPanel(
-                          selectInput("filter_genres_3_a", "Filter by Genre:",
-                                      choices = all_genre,
-                                      selected = all_genre, multiple = TRUE),
                           selectizeInput("artist_3_a_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_a_2", "Select Artist 2 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_a_3", "Select Artist 3 to Compare:",
-                                         choices = NULL, selected = NULL, multiple = FALSE)
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectInput("filter_genres_3_a", "Filter by Genre:",
+                                      choices = all_genre,
+                                      selected = all_genre, multiple = TRUE)
                         ),
                         mainPanel(
                           fluidRow(
                             column(width = 6,
-                                   h4("Music Releases"),
+                                   h5("Music (Song/Album) Releases"),
                                    withSpinner(plotlyOutput("predictedStars_3a_1", height = "350px"))
                             ),
                             column(width = 6,
-                                   h4("Notable Music Releases"),
+                                   h5("Notable Music (Song/Album) Releases"),
                                    withSpinner(plotlyOutput("predictedStars_3a_2", height = "350px"))
                             )
                           ),
                           fluidRow(
                             column(width = 6,
-                                   h4("Artist Influences & Collaborations"),
+                                   h5("New Artist Influences & Collaborations"),
                                    withSpinner(plotlyOutput("predictedStars_3a_3", height = "350px"))
                             ),
                             column(width = 6,
-                                   h4("Influenced Music"),
+                                   h5("Influenced Music"),
                                    withSpinner(plotlyOutput("predictedStars_3a_4", height = "350px"))
                             )
                           ),
@@ -445,18 +439,19 @@ ui <- navbarPage(
                         )
                       )
              ),
+             
              ######################## Question 3b ##############################
               tabPanel("Emerging Stars of Oceanus Folk",
                        sidebarLayout(
                          sidebarPanel(
-                           checkboxGroupInput("filter_genres_3_b", "Filter by Genre:", 
-                                              choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
-                           sliderInput("year_range_3_b", "Filter by Year:", min = 2000, max = 2040,
-                                       value = c(2020, 2040), step = 1, sep = "", animate = TRUE),
                            selectInput("selected_artists_3_b", "Select Artists to Compare:",
                                        choices = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
                                        selected = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-                                       multiple = TRUE)
+                                       multiple = TRUE),
+                           checkboxGroupInput("filter_genres_3_b", "Filter by Genre:", 
+                                              choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
+                           sliderInput("year_range_3_b", "Filter by Year:", min = 2000, max = 2040,
+                                       value = c(2020, 2040), step = 1, sep = "", animate = TRUE)
                          ),
                          mainPanel(
                            tableOutput("predictedStars_3c"),
@@ -497,6 +492,8 @@ server <- function(input, output, session) {
   Question3_Server(input, output, session)
   
   Question3_a_Server(input, output, session)
+  
+
   
   
   

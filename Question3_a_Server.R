@@ -90,7 +90,7 @@ Question3_a_Server <- function(input, output, session) {
       mode = "lines+markers",
       name = chosen_creator_1,
       line = list(color = "#2E3192", width = 2),
-      marker = list(color = "red", size = 6),
+      marker = list(color = "#2E3192", size = 6),
       hoverinfo = "text",
       hovertext = ~paste0(
         "Artist: ", chosen_creator_1,
@@ -106,7 +106,7 @@ Question3_a_Server <- function(input, output, session) {
         mode = "lines+markers",
         name = chosen_creator_2,
         line = list(color = "green", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "green", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_2,
@@ -122,7 +122,7 @@ Question3_a_Server <- function(input, output, session) {
         mode = "lines+markers",
         name = chosen_creator_3,
         line = list(color = "purple", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "purple", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_3,
@@ -131,7 +131,7 @@ Question3_a_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = "Yearly Music (Song/Album) Releases",
+        title = NULL,
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -139,7 +139,7 @@ Question3_a_Server <- function(input, output, session) {
           automargin = TRUE
         ),
         yaxis = list(
-          title = "Count",
+          title = "Yearly Count",
           automargin = TRUE
         ),
         legend = list(
@@ -224,7 +224,7 @@ Question3_a_Server <- function(input, output, session) {
       mode = "lines+markers",
       name = chosen_creator_1,
       line = list(color = "#2E3192", width = 2),
-      marker = list(color = "red", size = 6),
+      marker = list(color = "#2E3192", size = 6),
       hoverinfo = "text",
       hovertext = ~paste0(
         "Artist: ", chosen_creator_1,
@@ -240,7 +240,7 @@ Question3_a_Server <- function(input, output, session) {
         mode = "lines+markers",
         name = chosen_creator_2,
         line = list(color = "green", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "green", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_2,
@@ -256,7 +256,7 @@ Question3_a_Server <- function(input, output, session) {
         mode = "lines+markers",
         name = chosen_creator_3,
         line = list(color = "purple", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "purple", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_3,
@@ -265,7 +265,7 @@ Question3_a_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = "Yearly Notable Music (Song/Album) Releases",
+        title = NULL,
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -273,7 +273,7 @@ Question3_a_Server <- function(input, output, session) {
           automargin = TRUE
         ),
         yaxis = list(
-          title = "Count",
+          title = "Yearly Count",
           automargin = TRUE
         ),
         legend = list(
@@ -379,7 +379,7 @@ Question3_a_Server <- function(input, output, session) {
       mode = "lines+markers",
       name = chosen_creator_1,
       line = list(color = "#2E3192", width = 2),
-      marker = list(color = "red", size = 6),
+      marker = list(color = "#2E3192", size = 6),
       hoverinfo = "text",
       hovertext = ~paste0(
         "Artist: ", chosen_creator_1,
@@ -395,7 +395,7 @@ Question3_a_Server <- function(input, output, session) {
         mode = "lines+markers",
         name = chosen_creator_2,
         line = list(color = "green", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "green", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_2,
@@ -411,7 +411,7 @@ Question3_a_Server <- function(input, output, session) {
         mode = "lines+markers",
         name = chosen_creator_3,
         line = list(color = "purple", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "purple", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_3,
@@ -420,7 +420,7 @@ Question3_a_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = "Annual Count of New Artist Influences & Collaborations",
+        title = NULL,
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -428,7 +428,7 @@ Question3_a_Server <- function(input, output, session) {
           automargin = TRUE
         ),
         yaxis = list(
-          title = "Count",
+          title = "Yearly Count",
           automargin = TRUE
         ),
         legend = list(
@@ -532,7 +532,7 @@ Question3_a_Server <- function(input, output, session) {
       mode = "lines+markers",
       name = chosen_creator_1,
       line = list(color = "#2E3192", width = 2),
-      marker = list(color = "red", size = 6),
+      marker = list(color = "#2E3192", size = 6),
       hoverinfo = "text",
       hovertext = ~paste0(
         "Artist: ", chosen_creator_1,
@@ -548,7 +548,7 @@ Question3_a_Server <- function(input, output, session) {
         mode = "lines+markers",
         name = chosen_creator_2,
         line = list(color = "green", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "green", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_2,
@@ -564,7 +564,7 @@ Question3_a_Server <- function(input, output, session) {
         mode = "lines+markers",
         name = chosen_creator_3,
         line = list(color = "purple", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "purple", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_3,
@@ -573,7 +573,7 @@ Question3_a_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = "Yearly Music (Song/Album) Influence",
+        title = NULL,
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -581,7 +581,7 @@ Question3_a_Server <- function(input, output, session) {
           automargin = TRUE
         ),
         yaxis = list(
-          title = "Count",
+          title = "Yearly Count",
           automargin = TRUE
         ),
         legend = list(

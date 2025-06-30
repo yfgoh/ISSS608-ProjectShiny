@@ -1,3 +1,136 @@
+tabPanel("Career Trajectories & Influence Comparison",
+         sidebarLayout(
+           sidebarPanel(
+             selectizeInput("artist_3_a_1", "Select Artist 1 to Compare:",
+                            choices = NULL, selected = NULL, multiple = FALSE),
+             selectizeInput("artist_3_a_2", "Select Artist 2 to Compare:",
+                            choices = NULL, selected = NULL, multiple = FALSE),
+             selectizeInput("artist_3_a_3", "Select Artist 3 to Compare:",
+                            choices = NULL, selected = NULL, multiple = FALSE),
+             selectInput("filter_genres_3_a", "Filter by Genre:",
+                         choices = all_genre,
+                         selected = all_genre, multiple = TRUE)
+           ),
+           mainPanel(
+             fluidRow(
+               column(width = 6,
+                      h5("Music (Song/Album) Releases"),
+                      withSpinner(plotlyOutput("predictedStars_3a_1", height = "350px"))
+               ),
+               column(width = 6,
+                      h5("Notable Music (Song/Album) Releases"),
+                      withSpinner(plotlyOutput("predictedStars_3a_2", height = "350px"))
+               )
+             ),
+             fluidRow(
+               column(width = 6,
+                      h5("New Artist Influences & Collaborations"),
+                      withSpinner(plotlyOutput("predictedStars_3a_3", height = "350px"))
+               ),
+               column(width = 6,
+                      h5("Influenced Music"),
+                      withSpinner(plotlyOutput("predictedStars_3a_4", height = "350px"))
+               )
+             ),
+             tags$hr(),
+             htmlOutput("insight_3a")
+           )
+         )
+),
+
+
+
+######################################### 2b ###################################
+
+
+output$genreSankey <- renderSankeyNetwork({
+  # Step 1: Start from full data
+  filtered_stats <- genre_influence_stats
+  
+  # Step 2: Filter by selected genre (unless "All")
+  if (!is.null(input$selected_genre) && input$selected_genre != "All") {
+    filtered_stats <- filtered_stats %>%
+      filter(song_genre == input$selected_genre)
+  }
+  
+  # Step 3: Summarize and structure links
+  filtered_stats <- filtered_stats %>%
+    group_by(song_genre) %>%
+    summarize(oceanus_influences = sum(oceanus_influences, na.rm = TRUE)) %>%
+    mutate(
+      source = "Oceanus Folk",
+      raw_target = ifelse(song_genre == "Oceanus Folk", "Oceanus Folk (in-genre influence)", song_genre),
+      target = paste0(raw_target, " (", oceanus_influences, ")"),
+      value = oceanus_influences
+    ) %>%
+    select(source, target, value) %>%
+    arrange(desc(value)) %>%
+    head(22)
+  
+  # Step 4: Create nodes and links
+  nodes <- data.frame(name = unique(c(filtered_stats$source, filtered_stats$target)))
+  
+  links <- filtered_stats %>%
+    mutate(
+      source = match(source, nodes$name) - 1,
+      target = match(target, nodes$name) - 1
+    )
+  
+  # Step 5: Create Sankey
+  sankey <- sankeyNetwork(
+    Links = as.data.frame(links),
+    Nodes = as.data.frame(nodes),
+    Source = "source",
+    Target = "target",
+    Value = "value",
+    NodeID = "name",
+    fontSize = 13,
+    nodeWidth = 30,
+    sinksRight = TRUE
+  )
+  
+  sankey
+})
+
+output$genreTable <- DT::renderDataTable({
+  selected <- input$selected_genre
+  
+  # Filter data based on selected genre
+  table_data <- genre_influence_stats
+  if (!is.null(selected) && selected != "All") {
+    table_data <- table_data %>% filter(song_genre == selected)
+  }
+  
+  table_data %>%
+    select(
+      Genre = song_genre,
+      Total_Music = total_music,
+      Oceanus_Influence = oceanus_influences,
+      Total_Influenced = total_influences,
+      Perc_Oceanus = perc_oceanus
+    ) %>%
+    arrange(desc(Oceanus_Influence))
+}, options = list(
+  pageLength = 10,
+  scrollX = TRUE,
+  autoWidth = TRUE
+), rownames = FALSE)
+
+###############2c##############################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ############################### Question 2 #######################################
 ############ Tab 1
 tabPanel(

@@ -930,26 +930,37 @@ creator_influenced_by_stats %>%
 
 ###########Question2tab4#########################################################
 
+# Step 1: Compute total number of songs for each genre
+genre_total_counts <- creator_and_songs_and_influenced_by_creator %>%
+  distinct(song_to, song_genre) %>%
+  count(song_genre, name = "total_music")
 
+# Step 2: Compute how many songs/genre where influencing Oceanus Folk
 genre_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
   filter(song_genre == "Oceanus Folk") %>%
   distinct(song_to, influenced_by, influenced_by_genre) %>%
   group_by(influenced_by_genre) %>%
   summarize(
-    total_music = n_distinct(song_to),
-    influenced_by = n_distinct(na.omit(influenced_by))
+    influenced_by = n_distinct(na.omit(influenced_by)),
+    .groups = "drop"
+  ) %>%
+  left_join(genre_total_counts, by = c("influenced_by_genre" = "song_genre")) %>%
+  mutate(
+    Percentage_oceanus_influence = round(influenced_by / total_music * 100, 1)
   ) %>%
   arrange(desc(influenced_by))
 
+# Step 3: Reordered columns
 genre_influenced_by_stats %>%
   head(10) %>%
   rename(
     `Genre` = influenced_by_genre,
-    `Total Influenced Music` = total_music,
-    `Influenced By Oceanus Folk` = influenced_by
+    `Total Music` = total_music,
+    `Genre influencing Oceanus Folk` = influenced_by
   ) %>%
-  kable(caption = "Ranking of Oceanus Folk Influence on Music Genres") %>%
-  kable_styling("striped", full_width = F) %>%
+  select(`Genre`, `Total Music`, `Genre influencing Oceanus Folk`, Percentage_oceanus_influence) %>%
+  kable(caption = "Ranking of Music Genre Influence on Oceanus Folk") %>%
+  kable_styling("striped", full_width = FALSE) %>%
   scroll_box(height = "200px")
 
 # Step 1: Prepare data — reverse flow direction: Genre → Oceanus Folk

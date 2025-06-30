@@ -91,106 +91,21 @@ Question2_Server <- function(input, output, session) {
   ###########
   
   
-  output$plot_surprise <- renderPlotly({
-      # Standardise category labels
-      plot_data <- plot_data %>%
-        mutate(type = case_when(
-          type == "Music Releases"    ~ "Music Releases",
-          type == "Influenced Works"  ~ "Influenced Songs/Albums",
-          type == "Artists"           ~ "New Influenced Artists",
-          TRUE                        ~ type
-        ))
-      
-      # Filter by year range from slider input
-      filtered_data <- plot_data %>%
-        filter(year >= input$year_range_2a[1],
-               year <= input$year_range_2a[2])
-      
-      # Plot
-      plot_ly(
-        data = filtered_data, 
-        x = ~year, 
-        y = ~surprise, 
-        color = ~type,
-        colors = c(
-          "Music Releases"          = "#ADD8E6", 
-          "Influenced Songs/Albums" = "#F08080", 
-          "New Influenced Artists"  = "#C2E0C6"
-        ),
-        type = 'scatter', 
-        mode = 'lines+markers',
-        hoverinfo = "text",
-        hovertext = ~paste0(
-          "Year: ", year,
-          "<br>Category: ", type,
-          "<br>Surprise: ", round(surprise, 2)
-        )
-      ) %>%
-        layout(
-          legend = list(
-            orientation = "h",
-            x = 0.5,
-            xanchor = "center",
-            y = 1.1,
-            yanchor = "bottom",
-            font = list(size = 12)
-          ),
-          title = list(
-            text = "Bayesian Surprise Across Three Categories",
-            x = 0.5,
-            xanchor = "center"
-          ),
-          xaxis = list(title = "Year", dtick = 5),
-          yaxis = list(title = "Surprise Score (KL Divergence)", range = c(0, 100)),
-          margin = list(t = 160, b = 80),
-          
-          # Optional: annotations and lines can also be conditionally shown based on year range
-          annotations = list(
-            list(
-              x = 2024, 
-              y = 85,
-              text = "<b>2024: Sailor Shift's Debut</b>",
-              xref = "x", yref = "y",
-              xanchor = "right",
-              showarrow = TRUE,
-              arrowhead = 2,
-              ax = -30, ay = -40,
-              font = list(color = "#2E3192", size = 12)
-            ),
-            list(
-              x = 2028, 
-              y = 90,
-              text = "<b>2028: Sailor Shift's Breakthrough</b>",
-              xref = "x", yref = "y",
-              xanchor = "right",
-              showarrow = TRUE,
-              arrowhead = 2,
-              ax = -30, ay = -40,
-              font = list(color = "#2E3192", size = 12)
-            )
-          ),
-          
-          shapes = list(
-            list(
-              type = "line",
-              x0 = 2024, x1 = 2024,
-              y0 = 0, y1 = 100,
-              line = list(dash = "dash", color = "grey")
-            ),
-            list(
-              type = "line",
-              x0 = 2028, x1 = 2028,
-              y0 = 0, y1 = 120,
-              line = list(dash = "dash", color = "grey")
-            )
-          )
-        )
-    })
-  
-  ###Cumulative plot for 2a
-  output$plot_cumulative <- renderPlotly({
+  output$plot_combined_2a <- renderPlotly({
+    # Standardise category labels
+    plot_data <- plot_data %>%
+      mutate(type = case_when(
+        type == "Music Releases"    ~ "Music Releases",
+        type == "Influenced Works"  ~ "Influenced Songs/Albums",
+        type == "Artists"           ~ "New Influenced Artists",
+        TRUE                        ~ type
+      ))
     
-    # Prepare each data series
+    # Apply year range filter
+    filtered_plot_data <- plot_data %>%
+      filter(year >= input$year_range_2a[1],
+             year <= input$year_range_2a[2])
+    
     df1 <- oceanus_nodes_by_date %>%
       select(year = release_date, value = cumulative_count) %>%
       mutate(series = "Music Releases")
@@ -203,82 +118,98 @@ Question2_Server <- function(input, output, session) {
       select(year = influence_release_date, value = cumulative_count) %>%
       mutate(series = "New Influenced Artists")
     
-    # Combine all into one tidy frame
-    combined_df <- bind_rows(df1, df2, df3)
-    
-    # Filter by year range from slider
-    filtered_df <- combined_df %>%
+    combined_df <- bind_rows(df1, df2, df3) %>%
       filter(year >= input$year_range_2a[1],
              year <= input$year_range_2a[2])
     
-    # Build cumulative Plotly chart
-    plot_ly(filtered_df,
-            x = ~year,
-            y = ~value,
-            color = ~series,
-            colors = c("Music Releases" = "#ADD8E6", 
-                       "Influenced Songs/Albums" = "#F08080", 
-                       "New Influenced Artists" = "#C2E0C6"),
-            type = 'scatter',
-            mode = 'lines+markers',
-            hoverinfo = "text",
-            hovertext = ~paste0("Year: ", year, "<br>", series, ": ", value)
+    # Plot cumulative
+    cumulative_plot <- plot_ly(
+      data = combined_df,
+      x = ~year,
+      y = ~value,
+      color = ~series,
+      colors = c("Music Releases" = "#ADD8E6",
+                 "Influenced Songs/Albums" = "#F08080",
+                 "New Influenced Artists" = "#C2E0C6"),
+      type = 'scatter',
+      mode = 'lines+markers',
+      hoverinfo = "text",
+      hovertext = ~paste0("Year: ", year, "<br>", series, ": ", value)
     ) %>%
       layout(
-        title = list(text = "Oceanus Folk Influence Over Time (Cumulative)", x = 0.5),
-        xaxis = list(title = list(text = ""), dtick = 5),
+        xaxis = list(title = "", dtick = 5),
         yaxis = list(title = "Cumulative Count"),
-        legend = list(
-          orientation = "h",
-          x = 0.5,
-          xanchor = "center",
-          y = 1.15,
-          yanchor = "bottom"
-        ),
-        margin = list(t = 160, b = 80),
-        
-        # Add annotations (you can also conditionally show these based on year range if needed)
-        annotations = list(
-          list(
-            x = 2024, 
-            y = 700,
-            text = "<b>2024: Sailor Shift's Debut</b>",
-            xref = "x", yref = "y",
-            xanchor = "right",
-            showarrow = TRUE,
-            arrowhead = 2,
-            ax = -30, ay = -40,
-            font = list(color = "#2E3192", size = 12)
-          ),
-          list(
-            x = 2028, 
-            y = 900,
-            text = "<b>2028: Sailor Shift's Breakthrough</b>",
-            xref = "x", yref = "y",
-            xanchor = "right",
-            showarrow = TRUE,
-            arrowhead = 2,
-            ax = -30, ay = -40,
-            font = list(color = "#2E3192", size = 12)
-          )
-        ),
-        
+        margin = list(t = 80, b = 60),
         shapes = list(
-          list(
-            type = "line",
-            x0 = 2024, x1 = 2024,
-            y0 = 0, y1 = 1000,
-            line = list(dash = "dash", color = "grey")
-          ),
-          list(
-            type = "line",
-            x0 = 2028, x1 = 2028,
-            y0 = 0, y1 = 1000,
-            line = list(dash = "dash", color = "grey")
-          )
+          list(type = "line", x0 = 2024, x1 = 2024,
+               y0 = 0, y1 = max(combined_df$value, na.rm = TRUE),
+               xref = "x", yref = "y", line = list(dash = "dash", color = "grey")),
+          list(type = "line", x0 = 2028, x1 = 2028,
+               y0 = 0, y1 = max(combined_df$value, na.rm = TRUE),
+               xref = "x", yref = "y", line = list(dash = "dash", color = "grey"))
         )
       )
+    
+    # Plot surprise
+    surprise_plot <- plot_ly(
+      data = filtered_plot_data,
+      x = ~year,
+      y = ~surprise,
+      color = ~type,
+      colors = c("Music Releases" = "#ADD8E6",
+                 "Influenced Songs/Albums" = "#F08080",
+                 "New Influenced Artists" = "#C2E0C6"),
+      type = 'scatter',
+      mode = 'lines+markers',
+      hoverinfo = "text",
+      hovertext = ~paste0("Year: ", year, "<br>Category: ", type, "<br>Surprise: ", round(surprise, 2)),
+      showlegend = FALSE
+    ) %>%
+      layout(
+        xaxis = list(title = "", dtick = 5),
+        yaxis = list(title = "Bayesian Surprise Score", range = c(0, 100)),
+        margin = list(t = 30, b = 50),
+        shapes = list(
+          list(type = "line", x0 = 2024, x1 = 2024, y0 = 0, y1 = 100,
+               xref = "x", yref = "y", line = list(dash = "dash", color = "grey")),
+          list(type = "line", x0 = 2028, x1 = 2028, y0 = 0, y1 = 100,
+               xref = "x", yref = "y", line = list(dash = "dash", color = "grey"))
+        )
+      )
+    
+    # Combine plots
+    subplot(
+      cumulative_plot,
+      surprise_plot,
+      nrows = 2,
+      shareX = TRUE,
+      titleY = TRUE,
+      heights = c(0.6, 0.4)
+    ) %>%
+      layout(
+        title = list(
+          text = "Oceanus Folk Influence Over Time & Bayesian Surprise",
+          x = 0.5
+        ),
+        annotations = list(
+          list(x = 2024, y = 0.96, xref = "x", yref = "paper",
+               text = "<b>2024: Sailor Shift's Debut</b>",
+               showarrow = TRUE, arrowhead = 2, ax = -20, ay = -10,
+               font = list(color = "#2E3192", size = 12)),
+          list(x = 2028, y = 1, xref = "x", yref = "paper",
+               text = "<b>2028: Sailor Shift's Breakthrough</b>",
+               showarrow = TRUE, arrowhead = 2, ax = -30, ay = -30,
+               font = list(color = "#2E3192", size = 12))
+        ),
+        legend = list(
+          orientation = "h",
+          x = 0.5, xanchor = "center",
+          y = -0.1, yanchor = "top"
+        ),
+        margin = list(t = 100, b = 100, l = 80, r = 40)
+      )
   })
+  ############################################
   
   
   
@@ -402,27 +333,29 @@ Question2_Server <- function(input, output, session) {
     sankey
   })
   
-  output$genreTable <- renderUI({
+  output$genreTable <- DT::renderDataTable({
     selected <- input$selected_genre
     
-    # Show all or filter
+    # Filter data based on selected genre
     table_data <- genre_influence_stats
     if (!is.null(selected) && selected != "All") {
       table_data <- table_data %>% filter(song_genre == selected)
     }
     
     table_data %>%
-      select(song_genre, total_music, oceanus_influences, total_influences, perc_oceanus) %>%
-      arrange(desc(oceanus_influences)) %>%
-      kable(caption = ifelse(
-        is.null(selected) || selected == "All",
-        "All Genres Ranked by Oceanus Influence",
-        paste("Details for Genre:", selected)
-      )) %>%
-      kable_styling("striped", full_width = FALSE) %>%
-      scroll_box(height = "300px") %>%
-      HTML()
-  })
+      select(
+        Genre = song_genre,
+        Total_Music = total_music,
+        Oceanus_Influence = oceanus_influences,
+        Total_Influenced = total_influences,
+        Perc_Oceanus = perc_oceanus
+      ) %>%
+      arrange(desc(Oceanus_Influence))
+  }, options = list(
+    pageLength = 10,
+    scrollX = TRUE,
+    autoWidth = TRUE
+  ), rownames = FALSE)
   
   ###############2c##############################
   
@@ -489,10 +422,9 @@ Question2_Server <- function(input, output, session) {
     sankey
   })
   
-  output$artistInfluenceTable <- renderUI({
+  output$artistInfluenceTable <- DT::renderDataTable({
     selected <- input$selected_artist
     
-    # Filter table data
     table_data <- creator_influenced_by_stats
     if (!is.null(selected) && selected != "All") {
       table_data <- table_data %>% filter(creator_name == selected)
@@ -507,16 +439,12 @@ Question2_Server <- function(input, output, session) {
         `Oceanus Folk Influence` = oceanus_influenced_by,
         `Oceanus Folk Music & Influence` = total_oceanus_influence
       ) %>%
-      kable(caption = ifelse(
-        is.null(selected) || selected == "All",
-        "Top Artists Influenced by Oceanus Folk",
-        paste("Details for Artist:", selected)
-      )) %>%
-      kable_styling("striped", full_width = FALSE) %>%
-      scroll_box(height = "300px") %>%
-      HTML()
-  })
-  
+      arrange(desc(`Oceanus Folk Music & Influence`))
+  }, options = list(
+    pageLength = 10,
+    scrollX = TRUE,
+    autoWidth = TRUE
+  ), rownames = FALSE)
   
   
   
@@ -583,7 +511,7 @@ Question2_Server <- function(input, output, session) {
   ')
   })
   
-  output$influencerGenreTable <- renderUI({
+  output$influencerGenreTable <- DT::renderDataTable({
     selected <- input$selected_inward_influence_genre
     
     # Filter table if a specific genre is selected
@@ -592,22 +520,19 @@ Question2_Server <- function(input, output, session) {
       table_data <- table_data %>% filter(influenced_by_genre == selected)
     }
     
-    # Rename and render
+    # Rename and reorder columns
     table_data %>%
       rename(
         `Genre` = influenced_by_genre,
-        `Total Influenced Music` = total_music,
-        `Influenced By Oceanus Folk` = influenced_by
+        `Total Music` = total_music,
+        `Genre influencing Oceanus Folk` = influenced_by
       ) %>%
-      kable(caption = ifelse(
-        is.null(selected) || selected == "All",
-        "All Genres That Influenced Oceanus Folk",
-        paste("Details for Genre:", selected)
-      )) %>%
-      kable_styling("striped", full_width = FALSE) %>%
-      scroll_box(height = "200px") %>%
-      HTML()
-  })
+      select(`Genre`, `Total Music`, `Genre influencing Oceanus Folk`, Percentage_oceanus_influence)
+  }, options = list(
+    pageLength = 10,
+    scrollX = TRUE,
+    autoWidth = TRUE
+  ), rownames = FALSE)
   
 ##################################Tab 5##################3  
   
