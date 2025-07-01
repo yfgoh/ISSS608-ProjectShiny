@@ -1,14 +1,15 @@
 Question3_Server <- function(input, output, session) {
   ############################### Question 3 table ##################################
-  debounced_genres <- debounce(reactive(input$filter_genres_3_t), millis = 500)
-  debounced_years <- debounce(reactive(input$year_range_3_t), millis = 500)
+  debounced_genres_3 <- debounce(reactive(input$filter_genres_3_t), millis = 500)
+  debounced_years_3 <- debounce(reactive(input$year_range_3_t), millis = 500)
 
   filtered_artist_3_t <- reactive({
     creator_and_songs %>%
-      filter(song_genre %in% debounced_genres(),
+      filter(song_genre %in% debounced_genres_3(),
              creator_node_type %in% c("Person", "MusicalGroup")) %>%
       pull(creator_name) %>%
-      unique()
+      unique() %>%
+      sort()
   })
   
   observe({
@@ -20,9 +21,9 @@ Question3_Server <- function(input, output, session) {
   # Data Preparation
   filtered_creator_influence_lists <- reactive({
     creator_influence_lists %>%
-      filter(song_genre %in% debounced_genres(),
-             creator_release_date >= debounced_years()[1],
-             creator_release_date <= debounced_years()[2])
+      filter(song_genre %in% debounced_genres_3(),
+             creator_release_date >= debounced_years_3()[1],
+             creator_release_date <= debounced_years_3()[2])
   })
   
   # Step 2: Aggregate unique influences per creator
