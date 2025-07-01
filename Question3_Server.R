@@ -71,8 +71,8 @@ Question3_Server <- function(input, output, session) {
           `Music Influenced` = influence_music
         ),
       options = list(
-        pageLength = 10,
-        lengthMenu = c(10, 30, 50, 100),
+        pageLength = 5,
+        lengthMenu = c(5, 10, 20),
         scrollX = TRUE
       ),
       rownames = FALSE,

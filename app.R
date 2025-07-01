@@ -32,6 +32,7 @@ source("Question2_Server.R") # Load Q2 server
 source("Question3_Server.R") # Load Q3 server
 source("Question3_a_Server.R") # Load Q3a server
 source("Question3_b_Server.R") # Load Q3a server
+source("Question3_b_table_Server.R") # Load Q3a server
 
 website_theme <- bs_theme(
   bootswatch = "minty",
@@ -460,11 +461,37 @@ ui <- navbarPage(
                           sliderInput("year_range_3_b", "Filter by Year:", min = 1992, max = 2040,
                                       value = c(2020, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE)
                         ),
-                        mainPanel(
-                          uiOutput("dynamic_title_3b"),
-                          withSpinner(DT::dataTableOutput("predictedStars_3_b")),
-                          tags$hr(),
-                          htmlOutput("insight_3b")
+                        mainPanel(  # Everything goes inside mainPanel
+                          tabsetPanel(
+                            tabPanel("Star Factor",
+                                     uiOutput("dynamic_title_3b"),
+                                     withSpinner(DT::dataTableOutput("predictedStars_3_b")),
+                                     tags$hr(),
+                                     htmlOutput("insight_3b")
+                            ),
+                            tabPanel("Artists' Details",
+                                     fluidRow(
+                                       column(width = 6,
+                                              h5("Music (Song/Album) Releases"),
+                                              withSpinner(plotlyOutput("predictedStars_3b_1", height = "340px"))
+                                       ),
+                                       column(width = 6,
+                                              h5("Notable Music (Song/Album) Releases"),
+                                              withSpinner(plotlyOutput("predictedStars_3b_2", height = "340px"))
+                                       )
+                                     ),
+                                     fluidRow(
+                                       column(width = 6,
+                                              h5("New Artist Influences & Collaborations"),
+                                              withSpinner(plotlyOutput("predictedStars_3b_3", height = "340px"))
+                                       ),
+                                       column(width = 6,
+                                              h5("Influenced Music"),
+                                              withSpinner(plotlyOutput("predictedStars_3b_4", height = "340px"))
+                                       )
+                                     )
+                            )
+                          )
                         )
                       )
              )
@@ -503,6 +530,8 @@ server <- function(input, output, session) {
   Question3_a_Server(input, output, session)
   
   Question3_b_Server(input, output, session)
+  
+  Question3_b_table_Server(input, output, session)
   
   
   
