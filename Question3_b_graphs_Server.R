@@ -17,22 +17,33 @@ Question3_b_graphs_Server <- function(input, output, session) {
     updateSelectizeInput(session, "artist_3_b_3", choices = filtered_artist_3_b(), selected = "Xia Cui", server = TRUE)
   })
   
+  genre_creator_and_songs_and_influences_and_creators_collaborate <- reactive({
+    req(debounced_genres(), debounced_years())
+    
+    creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(song_genre == debounced_genres(),
+             creator_release_date >= debounced_years()[1],
+             creator_release_date <= debounced_years()[2])
+  })
+  
+  observe({
+    cat(">>> Years used for filtering:\n")
+    print(debounced_years())
+  })
+  
   output$predictedStars_3b_1 <- renderPlotly({
     # Data Preparation
     
     chosen_creator_1 <- input$artist_3_b_1
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
-      filter(creator_name == chosen_creator_1, 
-             song_genre == debounced_genres(),
-             creator_release_date >= 2020,
-             creator_release_date <= 2040) %>%
+    chosen_node_1 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
+      filter(creator_name == chosen_creator_1) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 2: Get the songs that the top creator produced
-    creator_songs_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creator_songs_1 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_1) %>%
       pull(song_to)
     
@@ -46,13 +57,13 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_2 <- input$artist_3_b_2
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_2 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_2) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 2: Get the songs that the top creator produced
-    creator_songs_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creator_songs_2 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_2) %>%
       pull(song_to)
     
@@ -66,13 +77,13 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_3 <- input$artist_3_b_3
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_3 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_3) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 2: Get the songs that the top creator produced
-    creator_songs_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creator_songs_3 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_3) %>%
       pull(song_to)
     
@@ -160,13 +171,13 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_1 <- input$artist_3_b_1
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_1 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_1) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 2: Get the songs that the top creator produced
-    creator_songs_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creator_songs_1 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_1) %>%
       pull(song_to)
     
@@ -180,13 +191,13 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_2 <- input$artist_3_b_2
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_2 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_2) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 2: Get the songs that the top creator produced
-    creator_songs_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creator_songs_2 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_2) %>%
       pull(song_to)
     
@@ -200,13 +211,13 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_3 <- input$artist_3_b_3
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_3 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_3) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 2: Get the songs that the top creator produced
-    creator_songs_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creator_songs_3 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_3) %>%
       pull(song_to)
     
@@ -294,13 +305,13 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_1 <- input$artist_3_b_1
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_1 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_1) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 1: Count number of influenced artists by release date
-    influence_artists_by_date_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    influence_artists_by_date_1 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_from %in% unique(chosen_node_1),
              influence_creator != unique(chosen_node_1)) %>%
       # Get unique artist-date pairs first
@@ -321,13 +332,13 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_2 <- input$artist_3_b_2
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_2 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_2) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 1: Count number of influenced artists by release date
-    influence_artists_by_date_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    influence_artists_by_date_2 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_from %in% unique(chosen_node_2),
              influence_creator != unique(chosen_node_2)) %>%
       # Get unique artist-date pairs first
@@ -348,13 +359,13 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_3 <- input$artist_3_b_3
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_3 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_3) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 1: Count number of influenced artists by release date
-    influence_artists_by_date_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    influence_artists_by_date_3 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_from %in% unique(chosen_node_3),
              influence_creator != unique(chosen_node_3)) %>%
       # Get unique artist-date pairs first
@@ -448,18 +459,18 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_1 <- input$artist_3_b_1
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_1 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_1) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 2: Get the songs that the top creator produced
-    creator_songs_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creator_songs_1 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_1) %>%
       pull(song_to)
     
     # Step 4: Get the songs they have influenced
-    creators_songs_influence_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creators_songs_influence_1 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_1,
              infuence_music_collaborate != chosen_node_1,
              `Edge Colour` == "Influenced By") %>%
@@ -475,18 +486,18 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_2 <- input$artist_3_b_2
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_2 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_2) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 2: Get the songs that the top creator produced
-    creator_songs_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creator_songs_2 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_2) %>%
       pull(song_to)
     
     # Step 4: Get the songs they have influenced
-    creators_songs_influence_2 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creators_songs_influence_2 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_2,
              `Edge Colour` == "Influenced By") %>%
       pull(infuence_music_collaborate)
@@ -501,18 +512,18 @@ Question3_b_graphs_Server <- function(input, output, session) {
     chosen_creator_3 <- input$artist_3_b_3
     
     # Step 1: Get the node of the chosen creator
-    chosen_node_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    chosen_node_3 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_3) %>%
       pull(creator_from) %>%
       unique()
     
     # Step 2: Get the songs that the top creator produced
-    creator_songs_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creator_songs_3 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_3) %>%
       pull(song_to)
     
     # Step 4: Get the songs they have influenced
-    creators_songs_influence_3 <- creator_and_songs_and_influences_and_creators_collaborate %>%
+    creators_songs_influence_3 <- genre_creator_and_songs_and_influences_and_creators_collaborate() %>%
       filter(creator_name == chosen_creator_3,
              infuence_music_collaborate != chosen_node_3,
              `Edge Colour` == "Influenced By") %>%
