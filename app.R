@@ -381,6 +381,8 @@ ui <- navbarPage(
                                       value = c(1992, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE)
                         ),
                         mainPanel(
+                          h4("Star Profile of Artists"),
+                          h5("Star Factor is calculated based on normalized scores across four criteria: releases, notable hits, collaborations, and influence"),
                           # First: Radar Plots
                           fluidRow(
                             column(width = 4,
@@ -612,11 +614,45 @@ server <- function(input, output, session) {
   })
   
   output$insight_3a <- renderUI({
-    HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
+    HTML("
+
+    <p>Based on previous tab's analysis, the top artists in each category are:</p>
+    <ul>
+      <li><strong>Greatest Number of Music Released:</strong> Sailor Shift</li>
+      <li><strong>Most Popular Artist (Highest Number of Notable Hits):</strong> Jay Walters</li>
+      <li><strong>Most Influential Artist (Collaborations & Influence on Music):</strong> Min Fu</li>
+    </ul>
+    <p><h4>Insights</h4></p>
+    <strong>Career Timeline and Creative Output</strong>
+    <p>Sailor Shift is the most recent entrant among the three artists, debuting in 2024. She has released music consistently through 2040, becoming the most prolific artist with 38 releases. Jay Walters follows closely with 37 releases, while Min Fu has released 12 records.</p>
+
+    <strong>Popularity (Notable Hits)</strong>
+    <p>Jay Walters is the most popular artist based on notable hits, with 35 songs reaching the top record charts. Sailor Shift follows with 25 chart-topping hits, while Min Fu has 12. Despite Sailor Shift's higher output, Jay Walters has a stronger track record of producing widely popular songs.</p>
+
+    <strong>Influence on the Music Industry</strong>
+    <p>Min Fu is the most influential artist overall, having collaborated with or influenced 598 artists and influenced the creation of 192 music pieces. Meanwhile, Jay Walters and Sailor Shift lags behind in this aspect. Jay Walters has influenced or collaborated with 51 artists and 50 music outputs. Sailor Shift has similar influence of 48 artists (through collaborations), but has had no influence on the music scene.</p>
+
+    <strong>Recency of Influence</strong>
+    <p>Sailor Shift’s influence is the most recent, with new connections as recent as 2040. In comparison, Jay Walters’ last recorded influence was in 2035, and Min Fu’s influence dates back to 2030.</p>
+  ")
   })
   
+  
   output$insight_3b <- renderUI({
-    HTML("<p><strong>Prediction:</strong> <To be Added>.</p>")
+    HTML("
+    <p><h4>Predictions</h4></p>
+
+    <p><strong>Note:</strong> Sailor Shift, ranked 1st in Oceanus Folk star factor, is already recognized as a global superstar and a central figure in the genre. As such, she is excluded from this prediction, which focuses on emerging artists poised to become the next Oceanus Folk stars.</p>
+
+    <strong>1. Chao Wu</strong>
+    <p>Chao Wu ranks second in the Oceanus Folk Star Factor list. Despite releasing only 4 songs, he has shown great influence having collaborated with/influenced 190 artists and influenced 44 music creations. Notably, 3 out of his 4 songs are chart-topping hits. Although his last Oceanus Folk release was in 2025, his work remains influential, with references as recent as 2038.</p>
+
+    <strong>2. Xia Jia</strong>
+    <p>Xia Jia follows closely in the Star Factor rankings. Like Chao Wu, she has released just 4 songs, 3 of which are hits. She has also shown great influence where she had influenced 178 artists and 42 music outputs through her Oceanus Folk music. Her last release was in 2028, with the most recent reference to her work in 2030—slightly less recent than Chao Wu’s ongoing impact.</p>
+    
+    <strong>3. Xiulan Ye</strong>
+    <p>Xiulan Ye, along with Donna Caldwell, co-produced two influential songs: Basque Shore and Destiny’s Call. Their last Oceanus Folk work was released in 2017 and was last referred to in 2030. However, Xiulan Ye is slightly more established, having also produced Unbound in the Doom Metal genre. Based on this broader influence and track record, Xiulan Ye is predicted as the third rising Oceanus Folk star, though Donna Caldwell also shows strong potential.</p>
+  ")
   })
 }
 
