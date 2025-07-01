@@ -150,7 +150,8 @@ Question3_b_Server <- function(input, output, session) {
         slope = map_dbl(tidied, ~.x$estimate[.x$term == "year"])
       ) %>%
       select(creator_name, slope) %>%
-      arrange(desc(slope))
+      arrange(desc(slope)) %>%
+      ungroup()
   })
   
   latest_scores <- reactive({
