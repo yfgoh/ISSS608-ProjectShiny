@@ -31,8 +31,10 @@ source("Question1_Server.R") # Load Q1 server
 source("Question2_Server.R") # Load Q2 server
 source("Question3_Server.R") # Load Q3 server
 source("Question3_a_Server.R") # Load Q3a server
-source("Question3_b_Server.R") # Load Q3a server
-source("Question3_b_table_Server.R") # Load Q3a server
+source("Question3_b_Server.R") # Load Q3 graphs server
+source("Question3_b_graphs_Server.R") # Load Q3 table server
+
+
 
 website_theme <- bs_theme(
   bootswatch = "minty",
@@ -531,8 +533,7 @@ server <- function(input, output, session) {
   
   Question3_b_Server(input, output, session)
   
-  Question3_b_table_Server(input, output, session)
-  
+  Question3_b_graphs_Server(input, output, session)
   
   
   

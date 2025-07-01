@@ -1,4 +1,4 @@
-Question3_b_table_Server <- function(input, output, session) {
+Question3_b_graphs_Server <- function(input, output, session) {
   ############################ Question 3 b table ###############################
   debounced_genres <- debounce(reactive(input$filter_genres_3_b), millis = 500)
   debounced_years <- debounce(reactive(input$year_range_3_b), millis = 500)
@@ -24,7 +24,10 @@ Question3_b_table_Server <- function(input, output, session) {
     
     # Step 1: Get the node of the chosen creator
     chosen_node_1 <- creator_and_songs_and_influences_and_creators_collaborate %>%
-      filter(creator_name == chosen_creator_1) %>%
+      filter(creator_name == chosen_creator_1, 
+             song_genre == debounced_genres(),
+             creator_release_date >= 2020,
+             creator_release_date <= 2040) %>%
       pull(creator_from) %>%
       unique()
     
