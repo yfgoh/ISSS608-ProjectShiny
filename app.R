@@ -23,7 +23,6 @@ library(plotly)
 library(networkD3)
 library(htmlwidgets)
 library(fmsb)
-library(glue)
 library(broom)
 library(purrr)
 
@@ -180,9 +179,9 @@ ui <- navbarPage(
             sliderInput(
               "year_range_2a",
               "Year:",
-              min = 1990,
+              min = 1992,
               max = 2040,
-              value = c(1990, 2040),
+              value = c(1992, 2040),
               step = 1,
               round = TRUE,
               sep = "",
@@ -340,7 +339,7 @@ ui <- navbarPage(
             sliderInput(
               inputId = "entropy_max_year",
               label = "Year",
-              min = 1990,
+              min = 1992,
               max = 2040,
               value = 2040,
               step = 1,
@@ -376,8 +375,8 @@ ui <- navbarPage(
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_t_3", "Select Artist 3 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          sliderInput("year_range_3_t", "Filter by Year:", min = 1990, max = 2040,
-                                      value = c(1990, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE)
+                          sliderInput("year_range_3_t", "Filter by Year:", min = 1992, max = 2040,
+                                      value = c(1992, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE)
                         ),
                         mainPanel(
                           # First: Radar Plots
@@ -458,8 +457,8 @@ ui <- navbarPage(
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_b_3", "Select Artist 3 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          sliderInput("year_range_3_b", "Filter by Year:", min = 1990, max = 2040,
-                                      value = c(1990, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE)
+                          sliderInput("year_range_3_b", "Filter by Year:", min = 1992, max = 2040,
+                                      value = c(2020, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE)
                         ),
                         mainPanel(
                           uiOutput("dynamic_title_3b"),

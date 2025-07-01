@@ -1,6 +1,7 @@
 Question3_b_Server <- function(input, output, session) {
   ############################### Question 3 b ##################################
   debounced_genres <- debounce(reactive(input$filter_genres_3_b), millis = 500)
+  debounced_years <- debounce(reactive(input$year_range_3_b), millis = 500)
   
   output$dynamic_title_3b <- renderUI({
     req(input$filter_genres_3_b)  # Ensure a genre is selected
@@ -44,7 +45,7 @@ Question3_b_Server <- function(input, output, session) {
   
   # Create complete grid
   all_years <- reactive({
-    seq(1992, 2040)
+    seq(debounced_years()[1], debounced_years()[2])
   })
   
   artist_year_grid <- reactive({
@@ -139,7 +140,7 @@ Question3_b_Server <- function(input, output, session) {
   
   trend_slopes <- reactive({
     scored_yearly() %>%
-      filter(year >= 1992, year <= 2040) %>%
+      filter(year >= debounced_years()[1], year <= debounced_years()[2]) %>%
       group_by(creator_name) %>%
       filter(!is.na(composite_score)) %>%
       nest() %>%
@@ -155,10 +156,10 @@ Question3_b_Server <- function(input, output, session) {
   
   latest_scores <- reactive({
     scored_yearly() %>%
-      filter(year == 2040) %>%
+      filter(year == debounced_years()[2]) %>%
       select(creator_name, composite_score) %>%
       rename(current_score = composite_score)
-  }) 
+  })
   
   score_trends <- reactive({
     trend_slopes() %>%
@@ -179,7 +180,6 @@ Question3_b_Server <- function(input, output, session) {
         rename(
           `Artist` = creator_name
         ),
-      caption = "Oceanus Folk Artists Ranked by Predicted Star Factor in 5 Years",
       options = list(
         pageLength = 10,
         lengthMenu = c(10, 30, 50, 100),
