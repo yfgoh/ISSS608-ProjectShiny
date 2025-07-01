@@ -23,12 +23,16 @@ library(plotly)
 library(networkD3)
 library(htmlwidgets)
 library(fmsb)
+library(glue)
+library(broom)
+library(purrr)
 
 source("data_prep.R")  # Load your reactive function
 source("Question1_Server.R") # Load Q1 server
 source("Question2_Server.R") # Load Q2 server
 source("Question3_Server.R") # Load Q3 server
 source("Question3_a_Server.R") # Load Q3a server
+source("Question3_b_Server.R") # Load Q3a server
 
 website_theme <- bs_theme(
   bootswatch = "minty",
@@ -300,32 +304,32 @@ ui <- navbarPage(
             ),
             helpText("Select a genre to view how it has influenced Oceanus Folk.")
           ),
-       
-        mainPanel(
-          # Row 1: Interpretation text (on top)
-          fluidRow(column(
-            width = 12,
-            h4("Sankey Diagram: Genres that Influenced Oceanus Folk"),
-            helpText(
-              "To determine which genres have most influenced Oceanus Folk, all Oceanus Folk songs/albums were analyzed along with the genres of songs that influenced them. This reveals the external genres that shaped Oceanus Folk's evolution."
-            )
-          )),
-          br(),
-          # Row 2: Sankey diagram
-          fluidRow(column(
-            width = 12,
-            sankeyNetworkOutput("influencerSankey", height = "400px")
-          )),
           
-          br(),
-          
-          # Row 3: Table
-          fluidRow(column(
-            width = 12,
-            DT::dataTableOutput("influencerGenreTable")
-          ))
-        )
-      )),
+          mainPanel(
+            # Row 1: Interpretation text (on top)
+            fluidRow(column(
+              width = 12,
+              h4("Sankey Diagram: Genres that Influenced Oceanus Folk"),
+              helpText(
+                "To determine which genres have most influenced Oceanus Folk, all Oceanus Folk songs/albums were analyzed along with the genres of songs that influenced them. This reveals the external genres that shaped Oceanus Folk's evolution."
+              )
+            )),
+            br(),
+            # Row 2: Sankey diagram
+            fluidRow(column(
+              width = 12,
+              sankeyNetworkOutput("influencerSankey", height = "400px")
+            )),
+            
+            br(),
+            
+            # Row 3: Table
+            fluidRow(column(
+              width = 12,
+              DT::dataTableOutput("influencerGenreTable")
+            ))
+          )
+        )),
       
       ############ Tab 5
       
@@ -355,23 +359,23 @@ ui <- navbarPage(
       )  # end of tabPanel Tab 5
     )    # ← CLOSE the tabsetPanel HERE!
   ), 
-    
-    ############################### Question 3 #######################################
+  
+  ############################### Question 3 #######################################
   tabPanel("Oceanus Folk's Rising Star",
            tabsetPanel(
              ######################## Question 3 Table ############################
              tabPanel("Artist's Star Factor",
                       sidebarLayout(
                         sidebarPanel(
+                          selectInput("filter_genres_3_t", "Filter by Genre:",
+                                      choices = all_genres,
+                                      selected = all_genres, multiple = TRUE),
                           selectizeInput("artist_3_t_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_t_2", "Select Artist 2 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_t_3", "Select Artist 3 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          selectInput("filter_genres_3_t", "Filter by Genre:",
-                                      choices = all_genre,
-                                      selected = all_genre, multiple = TRUE),
                           sliderInput("year_range_3_t", "Filter by Year:", min = 1990, max = 2040,
                                       value = c(1990, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE)
                         ),
@@ -391,6 +395,7 @@ ui <- navbarPage(
                           tags$hr(),
                           
                           # Then: Table
+                          h5("Artists Ranked by Star Factor"),
                           withSpinner(DT::dataTableOutput("predictedStars_3_table")),
                           tags$hr(),
                           
@@ -403,35 +408,35 @@ ui <- navbarPage(
              tabPanel("Career Trajectories & Influence Comparison",
                       sidebarLayout(
                         sidebarPanel(
+                          selectInput("filter_genres_3_a", "Filter by Genre:",
+                                      choices = all_genres,
+                                      selected = all_genres, multiple = TRUE),
                           selectizeInput("artist_3_a_1", "Select Artist 1 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_a_2", "Select Artist 2 to Compare:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
                           selectizeInput("artist_3_a_3", "Select Artist 3 to Compare:",
-                                         choices = NULL, selected = NULL, multiple = FALSE),
-                          selectInput("filter_genres_3_a", "Filter by Genre:",
-                                      choices = all_genre,
-                                      selected = all_genre, multiple = TRUE)
+                                         choices = NULL, selected = NULL, multiple = FALSE)
                         ),
                         mainPanel(
                           fluidRow(
                             column(width = 6,
                                    h5("Music (Song/Album) Releases"),
-                                   withSpinner(plotlyOutput("predictedStars_3a_1", height = "350px"))
+                                   withSpinner(plotlyOutput("predictedStars_3a_1", height = "340px"))
                             ),
                             column(width = 6,
                                    h5("Notable Music (Song/Album) Releases"),
-                                   withSpinner(plotlyOutput("predictedStars_3a_2", height = "350px"))
+                                   withSpinner(plotlyOutput("predictedStars_3a_2", height = "340px"))
                             )
                           ),
                           fluidRow(
                             column(width = 6,
                                    h5("New Artist Influences & Collaborations"),
-                                   withSpinner(plotlyOutput("predictedStars_3a_3", height = "350px"))
+                                   withSpinner(plotlyOutput("predictedStars_3a_3", height = "340px"))
                             ),
                             column(width = 6,
                                    h5("Influenced Music"),
-                                   withSpinner(plotlyOutput("predictedStars_3a_4", height = "350px"))
+                                   withSpinner(plotlyOutput("predictedStars_3a_4", height = "340px"))
                             )
                           ),
                           tags$hr(),
@@ -441,24 +446,29 @@ ui <- navbarPage(
              ),
              
              ######################## Question 3b ##############################
-              tabPanel("Emerging Stars of Oceanus Folk",
-                       sidebarLayout(
-                         sidebarPanel(
-                           selectInput("selected_artists_3_b", "Select Artists to Compare:",
-                                       choices = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-                                       selected = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-                                       multiple = TRUE),
-                           checkboxGroupInput("filter_genres_3_b", "Filter by Genre:", 
-                                              choices = c("Oceanus Folk", "Indie Pop", "Indie Folk")),
-                           sliderInput("year_range_3_b", "Filter by Year:", min = 2000, max = 2040,
-                                       value = c(2020, 2040), step = 1, sep = "", animate = TRUE)
-                         ),
-                         mainPanel(
-                           tableOutput("predictedStars_3c"),
-                           htmlOutput("insight_3c")
-                         )
-                       )
-              )
+             tabPanel("Emerging Stars of Oceanus Folk",
+                      sidebarLayout(
+                        sidebarPanel(
+                          selectInput("filter_genres_3_b", "Select Genre:",
+                                      choices = all_genres,
+                                      selected = "Oceanus Folk", multiple = FALSE),
+                          selectizeInput("artist_3_b_1", "Select Artist 1 to Compare:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectizeInput("artist_3_b_2", "Select Artist 2 to Compare:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectizeInput("artist_3_b_3", "Select Artist 3 to Compare:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          sliderInput("year_range_3_b", "Filter by Year:", min = 1990, max = 2040,
+                                      value = c(1990, 2040), step = 1, round = TRUE, sep = "", width = "100%", animate = TRUE)
+                        ),
+                        mainPanel(
+                          uiOutput("dynamic_title_3b"),
+                          withSpinner(DT::dataTableOutput("predictedStars_3_b")),
+                          tags$hr(),
+                          htmlOutput("insight_3b")
+                        )
+                      )
+             )
            )
   )
 )
@@ -477,11 +487,11 @@ server <- function(input, output, session) {
       root = "Oceanus Folk"
     )
   })
-
+  
   ######################################## Question 1 ###################################
   
   Question1_Server(input, output, session)  
-
+  
   
   ######################################## Question 2 ###################################
   
@@ -493,7 +503,9 @@ server <- function(input, output, session) {
   
   Question3_a_Server(input, output, session)
   
-
+  Question3_b_Server(input, output, session)
+  
+  
   
   
   

@@ -9,7 +9,7 @@ Question3_Server <- function(input, output, session) {
       pull(creator_name) %>%
       unique()
   })
-
+  
   observe({
     updateSelectizeInput(session, "artist_3_t_1", choices = filtered_artist_3_t(), selected = "Sailor Shift", server = TRUE)
     updateSelectizeInput(session, "artist_3_t_2", choices = filtered_artist_3_t(), selected = "Jay Walters", server = TRUE)
@@ -23,18 +23,18 @@ Question3_Server <- function(input, output, session) {
              creator_release_date >= input$year_range_3_t[1],
              creator_release_date <= input$year_range_3_t[2])
   })
-
+  
   # Step 2: Aggregate unique influences per creator
   creator_stats <- reactive({
     filtered_creator_influence_lists() %>%
-    group_by(creator_name) %>%
-    summarize(
-      total_songs = n_distinct(song_to),
-      notable_hits = sum(notable == TRUE, na.rm = TRUE),
-      collaboration = length(unique(unlist(unique_collaborate))),
-      influence_creators = length(unique(unlist(unique_influence_creators))),
-      collaboration_influence_creator = length(unique(c(unlist(unique_influence_creators),unlist( unique_collaborate)))),
-      influence_music = length(unique(unlist(unique_influence_music)))
+      group_by(creator_name) %>%
+      summarize(
+        total_songs = n_distinct(song_to),
+        notable_hits = sum(notable == TRUE, na.rm = TRUE),
+        collaboration = length(unique(unlist(unique_collaborate))),
+        influence_creators = length(unique(unlist(unique_influence_creators))),
+        collaboration_influence_creator = length(unique(c(unlist(unique_influence_creators),unlist( unique_collaborate)))),
+        influence_music = length(unique(unlist(unique_influence_music)))
       )
   })
   
@@ -55,8 +55,20 @@ Question3_Server <- function(input, output, session) {
   output$predictedStars_3_table <- DT::renderDataTable({
     # Step 4: Final Ranked Table
     DT::datatable(
-      creator_rankings(),
-      caption = "Artists Ranked by Star Factor",
+      creator_rankings() %>%
+        mutate(
+          Rank = row_number(),
+          `Star Factor` = round(composite_score, 2)
+        ) %>%
+        select(Rank, creator_name, total_songs, notable_hits, collaboration_influence_creator, 
+               influence_music, `Star Factor`) %>%
+        rename(
+          `Artist` = creator_name,
+          `Total Music` = total_songs,
+          `Notable Hits` = notable_hits,
+          `Artist Influ & Colab` = collaboration_influence_creator,
+          `Music Influenced` = influence_music
+        ),
       options = list(
         pageLength = 10,
         lengthMenu = c(10, 30, 50, 100),
@@ -74,9 +86,9 @@ Question3_Server <- function(input, output, session) {
   # Extract all creators' relevant data for scaling
   all_scaled <- reactive({
     creator_rankings() %>%
-    select(creator_name, total_songs, notable_hits, collaboration_influence_creator, influence_music) %>%
-    mutate(across(-creator_name, ~ scales::rescale(., to = c(0, 100)))) %>%
-    column_to_rownames("creator_name") 
+      select(creator_name, total_songs, notable_hits, collaboration_influence_creator, influence_music) %>%
+      mutate(across(-creator_name, ~ scales::rescale(., to = c(0, 100)))) %>%
+      column_to_rownames("creator_name") 
   })
   
   ############################### Question 3 Radar 1 #################################
