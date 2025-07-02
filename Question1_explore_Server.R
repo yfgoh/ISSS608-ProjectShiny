@@ -421,7 +421,7 @@ Question1_explore_Server <- function(input, output, session) {
     max_degree <- max(distances[is.finite(distances)], na.rm = TRUE)
     
     # Override checkbox if selected degree is below 13
-    if (selected_degree < 13) {
+    if (selected_degree < max_degree) {
       include_inf <- FALSE
     }
     
@@ -511,15 +511,15 @@ Question1_explore_Server <- function(input, output, session) {
         colours = c("#2E3192", "#FFA757"),
         values = scales::rescale(c(0, max_degree)),
         na.value = "grey50",
-        limits = c(0, 13),
-        breaks = 0:13
+        limits = c(0, max_degree),
+        breaks = 0:max_degree
       )
     
     girafe(ggobj = g, width_svg = 9, height_svg = 8)
   })
   
   observe({
-    if (input$degree_sep < 13) {
+    if (input$degree_sep < max_degree) {
       updateCheckboxInput(
         session,
         inputId = "include_infinite",
