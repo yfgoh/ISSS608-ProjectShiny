@@ -192,6 +192,190 @@ Question3_b_Server <- function(input, output, session) {
     )
   })
   
+  ############################## Plot ####################################
+  
+  output$predictedStars_3_b_plot <- renderPlotly({
+    star_factor_1 <- scored_yearly() %>%
+      filter(creator_name == input$artist_3_b_1,
+             year >= debounced_years_3_b()[1],
+             year <= debounced_years_3_b()[2]) %>%
+      select(year, composite_score)
+    
+    star_factor_2 <- scored_yearly() %>%
+      filter(creator_name == input$artist_3_b_2,
+             year >= debounced_years_3_b()[1],
+             year <= debounced_years_3_b()[2]) %>%
+      select(year, composite_score)
+    
+    star_factor_3 <- scored_yearly() %>%
+      filter(creator_name == input$artist_3_b_3,
+             year >= debounced_years_3_b()[1],
+             year <= debounced_years_3_b()[2]) %>%
+      select(year, composite_score)
+    
+    creator_1_trend <- score_trends() %>%
+      filter(creator_name == input$artist_3_b_1) %>%
+      select(slope, current_score)
+    
+    creator_1_projection <- tibble(
+      year = debounced_years_3_b()[2]:(debounced_years_3_b()[2] + 5),
+      composite_score = creator_1_trend$current_score + 
+        creator_1_trend$slope * (debounced_years_3_b()[2]:(debounced_years_3_b()[2] + 5) - debounced_years_3_b()[2])
+    )
+    
+    creator_2_trend <- score_trends() %>%
+      filter(creator_name == input$artist_3_b_2) %>%
+      select(slope, current_score)
+    
+    creator_2_projection <- tibble(
+      year = debounced_years_3_b()[2]:(debounced_years_3_b()[2] + 5),
+      composite_score = creator_2_trend$current_score + 
+        creator_2_trend$slope * (debounced_years_3_b()[2]:(debounced_years_3_b()[2] + 5) - debounced_years_3_b()[2])
+    )
+    
+    creator_3_trend <- score_trends() %>%
+      filter(creator_name == input$artist_3_b_3) %>%
+      select(slope, current_score)
+    
+    creator_3_projection <- tibble(
+      year = debounced_years_3_b()[2]:(debounced_years_3_b()[2] + 5),
+      composite_score = creator_3_trend$current_score + 
+        creator_3_trend$slope * (debounced_years_3_b()[2]:(debounced_years_3_b()[2] + 5) - debounced_years_3_b()[2])
+    )
+    
+    # Visualisation
+    
+    plot_ly(
+      data = star_factor_1,
+      x = ~year,
+      y = ~composite_score,
+      type = "scatter",
+      mode = "lines+markers",
+      name = chosen_creator_1,
+      line = list(color = "#2E3192", width = 2),
+      marker = list(color = "red", size = 6),
+      hoverinfo = "text",
+      hovertext = ~paste0(
+        "Artist: ", chosen_creator_1,
+        "<br>Year: ", year,
+        "<br>Star Factor: ", round(composite_score, 3)
+      )
+    ) %>%
+      config(displayModeBar = FALSE) %>%
+      add_trace(
+        data = star_factor_2,
+        x = ~year,
+        y = ~composite_score,
+        name = chosen_creator_2,
+        line = list(color = "green", width = 2),
+        marker = list(color = "red", size = 6),
+        hoverinfo = "text",
+        hovertext = ~paste0(
+          "Artist: ", chosen_creator_2,
+          "<br>Year: ", year,
+          "<br>Star Factor: ", round(composite_score, 3)
+        )
+      ) %>%
+      add_trace(
+        data = star_factor_3,
+        x = ~year,
+        y = ~composite_score,
+        name = chosen_creator_3,
+        line = list(color = "purple", width = 2),
+        marker = list(color = "red", size = 6),
+        hoverinfo = "text",
+        hovertext = ~paste0(
+          "Artist: ", chosen_creator_3,
+          "<br>Year: ", year,
+          "<br>Star Factor: ", round(composite_score, 3)
+        )
+      ) %>%
+      add_trace(
+        data = creator_1_projection,
+        x = ~year,
+        y = ~composite_score,
+        name = chosen_creator_1,
+        line = list(color = "#2E3192", width = 2),
+        marker = list(opacity = 0),
+        hoverinfo = "text",
+        hovertext = ~paste0(
+          "Artist: ", chosen_creator_1,
+          "<br>Year: ", year,
+          "<br>Star Factor: ", round(composite_score, 3)
+        ),
+        showlegend = FALSE
+      ) %>%
+      add_trace(
+        data = creator_2_projection,
+        x = ~year,
+        y = ~composite_score,
+        name = chosen_creator_2,
+        line = list(color = "green", width = 2),
+        marker = list(opacity = 0),
+        hoverinfo = "text",
+        hovertext = ~paste0(
+          "Artist: ", chosen_creator_2,
+          "<br>Year: ", year,
+          "<br>Star Factor: ", round(composite_score, 3)
+        ),
+        showlegend = FALSE
+      ) %>%
+      add_trace(
+        data = creator_3_projection,
+        x = ~year,
+        y = ~composite_score,
+        name = chosen_creator_3,
+        line = list(color = "purple", width = 2),
+        marker = list(opacity = 0),
+        hoverinfo = "text",
+        hovertext = ~paste0(
+          "Artist: ", chosen_creator_3,
+          "<br>Year: ", year,
+          "<br>Star Factor: ", round(composite_score, 3)
+        ),
+        showlegend = FALSE
+      )%>%
+      layout(
+        title = "Star Factor Prediction for the Next 5 Years",
+        margin = list(b = 80, t = 80),      
+        xaxis = list(
+          title = NA,  
+          dtick = 5,
+          automargin = TRUE
+        ),
+        yaxis = list(
+          title = "Star Factor",
+          automargin = TRUE
+        ),
+        legend = list(
+          orientation = "h",
+          x = 0.5,
+          xanchor = "center",
+          y = -0.1
+        ),
+        shapes = list(
+          list(
+            type = "line",
+            x0 = debounced_years_3_b()[2], x1 = debounced_years_3_b()[2],
+            y0 = 0, y1 = max(star_factor_1$composite_score, star_factor_2$composite_score, star_factor_3$composite_score),
+            line = list(dash="dash", color="grey")
+          )
+        ),
+        annotations = list(
+          list(
+            x = debounced_years_3_b()[2], 
+            y = max(star_factor_1$composite_score, star_factor_2$composite_score, star_factor_3$composite_score),
+            text = "Projection",
+            xref = "x", yref = "y",
+            xanchor = "left",
+            showarrow = TRUE, arrowhead = 2,
+            ax = 10, ay = -10,
+            font = list(color="black", size=12)
+          )
+        )
+      )
+  })
+  
   ############################## Graphs ##################################
   
   genre_creator_and_songs_and_influences_and_creators_collaborate <- reactive({

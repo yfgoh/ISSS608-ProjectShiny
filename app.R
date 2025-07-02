@@ -468,6 +468,8 @@ ui <- navbarPage(
                           tabsetPanel(
                             tabPanel("Star Factor",
                                      uiOutput("dynamic_title_3b"),
+                                     withSpinner(plotlyOutput("predictedStars_3_b_plot")),
+                                     tags$hr(),
                                      withSpinner(DT::dataTableOutput("predictedStars_3_b")),
                                      tags$hr(),
                                      htmlOutput("insight_3b")
