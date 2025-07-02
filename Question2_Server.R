@@ -344,7 +344,7 @@ Question2_Server <- function(input, output, session) {
     
     # Step 6: Define genre color palette
     genre_palette <- c(
-      "Oceanus Folk"           = "#1f77b4",  # blue
+      "Oceanus Folk"           = "#2E3192",  # blue
       "Indie Folk"             = "#ff7f0e",  # orange
       "Synthwave"              = "#2ca02c",  # green
       "Dream Pop"              = "#d62728",  # red

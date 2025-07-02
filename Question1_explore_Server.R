@@ -105,6 +105,32 @@ Question1_explore_Server <- function(input, output, session) {
           `Member Of` = "#CF57FF"
         )
       ) +
+      scale_colour_manual(
+        name = "Genre",
+        values = c(
+          "Oceanus Folk"           = "#2E3192",  # blue
+          "Indie Folk"             = "#ff7f0e",  # orange
+          "Synthwave"              = "#2ca02c",  # green
+          "Dream Pop"              = "#d62728",  # red
+          "Doom Metal"             = "#9467bd",  # purple
+          "Psychedelic Rock"       = "#8c564b",  # brown
+          "Alternative Rock"       = "#e377c2",  # pink
+          "Indie Rock"             = "#7f7f7f",  # gray
+          "Desert Rock"            = "#bcbd22",  # yellow-green
+          "Americana"              = "#17becf",  # cyan
+          "Space Rock"             = "#ff9896",  # coral
+          "Synthpop"               = "#98df8a",  # mint green
+          "Blues Rock"             = "#aec7e8",  # light blue
+          "Symphonic Metal"        = "#c5b0d5",  # lavender
+          "Avant-Garde Folk"       = "#f7b6d2",  # rose
+          "Post-Apocalyptic Folk"  = "#c49c94",  # warm gray
+          "Celtic Folk"            = "#dbdb8d",  # olive
+          "Emo/Pop Punk"           = "#9edae5",  # pale cyan
+          "Indie Pop"              = "#ffbb78",  # soft orange
+          "Jazz Surf Rock"         = "#c7c7c7",  # light gray
+          "Lo-Fi Electronica"      = "#bc80bd"   # dusty violet
+        )
+      ) +
       theme_graph(base_family = "sans") +
       theme(
         legend.text = element_text(size = 6),
@@ -228,6 +254,32 @@ Question1_explore_Server <- function(input, output, session) {
           `Creator Of` = "#47D45A",
           `Influenced By` = "#FF5757",
           `Member Of` = "#CF57FF"
+        )
+      ) +
+      scale_colour_manual(
+        name = "Genre",
+        values = c(
+          "Oceanus Folk"           = "#2E3192",  # blue
+          "Indie Folk"             = "#ff7f0e",  # orange
+          "Synthwave"              = "#2ca02c",  # green
+          "Dream Pop"              = "#d62728",  # red
+          "Doom Metal"             = "#9467bd",  # purple
+          "Psychedelic Rock"       = "#8c564b",  # brown
+          "Alternative Rock"       = "#e377c2",  # pink
+          "Indie Rock"             = "#7f7f7f",  # gray
+          "Desert Rock"            = "#bcbd22",  # yellow-green
+          "Americana"              = "#17becf",  # cyan
+          "Space Rock"             = "#ff9896",  # coral
+          "Synthpop"               = "#98df8a",  # mint green
+          "Blues Rock"             = "#aec7e8",  # light blue
+          "Symphonic Metal"        = "#c5b0d5",  # lavender
+          "Avant-Garde Folk"       = "#f7b6d2",  # rose
+          "Post-Apocalyptic Folk"  = "#c49c94",  # warm gray
+          "Celtic Folk"            = "#dbdb8d",  # olive
+          "Emo/Pop Punk"           = "#9edae5",  # pale cyan
+          "Indie Pop"              = "#ffbb78",  # soft orange
+          "Jazz Surf Rock"         = "#c7c7c7",  # light gray
+          "Lo-Fi Electronica"      = "#bc80bd"   # dusty violet
         )
       ) +
       theme_graph(base_family = "sans") +
@@ -358,6 +410,32 @@ Question1_explore_Server <- function(input, output, session) {
           `Creator Of` = "#47D45A",
           `Influenced By` = "#FF5757",
           `Member Of` = "#CF57FF"
+        )
+      ) +
+      scale_colour_manual(
+        name = "Genre",
+        values = c(
+          "Oceanus Folk"           = "#2E3192",  # blue
+          "Indie Folk"             = "#ff7f0e",  # orange
+          "Synthwave"              = "#2ca02c",  # green
+          "Dream Pop"              = "#d62728",  # red
+          "Doom Metal"             = "#9467bd",  # purple
+          "Psychedelic Rock"       = "#8c564b",  # brown
+          "Alternative Rock"       = "#e377c2",  # pink
+          "Indie Rock"             = "#7f7f7f",  # gray
+          "Desert Rock"            = "#bcbd22",  # yellow-green
+          "Americana"              = "#17becf",  # cyan
+          "Space Rock"             = "#ff9896",  # coral
+          "Synthpop"               = "#98df8a",  # mint green
+          "Blues Rock"             = "#aec7e8",  # light blue
+          "Symphonic Metal"        = "#c5b0d5",  # lavender
+          "Avant-Garde Folk"       = "#f7b6d2",  # rose
+          "Post-Apocalyptic Folk"  = "#c49c94",  # warm gray
+          "Celtic Folk"            = "#dbdb8d",  # olive
+          "Emo/Pop Punk"           = "#9edae5",  # pale cyan
+          "Indie Pop"              = "#ffbb78",  # soft orange
+          "Jazz Surf Rock"         = "#c7c7c7",  # light gray
+          "Lo-Fi Electronica"      = "#bc80bd"   # dusty violet
         )
       ) +
       theme_graph(base_family = "sans") +
