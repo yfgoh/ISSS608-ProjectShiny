@@ -540,8 +540,7 @@ ui <- navbarPage(
                                       selected = "Oceanus Folk", multiple = FALSE),
                           selectizeInput("artist_4", "Select Artist:",
                                          choices = NULL, selected = NULL, multiple = FALSE),
-                          sliderInput("degree_sep", "Degree of Separation:", min = 1, max = 13,
-                                      value = 13, step = 1, sep = "", animate = animationOptions(interval = 3000, loop = FALSE)),
+                          uiOutput("dynamic_degree_slider"),  # Dynamic slider placeholder
                           checkboxInput(
                             inputId = "include_infinite",
                             label = "Nodes that are unconnected to the Selected Artist",

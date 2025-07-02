@@ -375,6 +375,47 @@ Question1_explore_Server <- function(input, output, session) {
   
   ############################### Question 1c ##################################
   
+  output$dynamic_degree_slider <- renderUI({
+    sailor_node <- creator_and_songs_and_influenced_by_creator %>%
+      filter(creator_name == input$artist_4) %>%
+      pull(creator_from) %>%
+      unique()
+    
+    genre_creators = creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(song_genre == debounced_genres_1()) %>%
+      pull(creator_from)
+    
+    genre_music = creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(song_genre == debounced_genres_1()) %>%
+      pull(song_to)
+    
+    genre_all_nodes <- unique(c(genre_creators,
+                                genre_music))
+    
+    # Create subgraph
+    sub_graph <- graph %>%
+      filter(name %in% genre_all_nodes)
+    
+    # 4. Convert to igraph
+    sub_igraph <- as.igraph(sub_graph)
+    
+    # 5. Compute distances
+    artist_id <- which(V(sub_igraph)$name == sailor_node)
+    distances <- distances(sub_igraph, v = artist_id, mode = "all")
+    
+    max_degree <- max(distances[is.finite(distances)], na.rm = TRUE)
+    
+    sliderInput(
+      inputId = "degree_sep",
+      label = "Degree of Separation:",
+      min = 1,
+      max = max(max_degree, 1),
+      value = max(max_degree, 1),
+      step = 1,
+      animate = animationOptions(interval = 3000, loop = FALSE)
+    )
+  })
+  
   # Server-side reactive output for broadInfluencePlot
   
   output$explore_4 <- renderGirafe({
