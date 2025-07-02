@@ -225,7 +225,7 @@ ui <- navbarPage(
               width = 12,
               h4("Sankey Diagram: Top Influenced Genre"),
               helpText(
-                "To determine which genres have been most influenced by Oceanus Folk, all songs and albums were identified. Then, the music (Songs/Albums) that influenced them were obtained to calculate the frequency and percentage of Oceanus Folk's influence across different musical genre. This analysis reveals the genres that show the strongest impact from Oceanus Folk's musical style."
+                "To determine which genres are influencing or have been most influenced by Oceanus Folk, all songs and albums were identified. Then, the music (Songs/Albums) that influenced them or have been influenced by them were obtained to calculate the frequency and percentage across different music genre. This analysis reveals the genres that show the strongest impact to and from Oceanus Folk's musical style."
               )
             )),
             br(),
@@ -243,11 +243,16 @@ ui <- navbarPage(
               h6("Combined Inward and Outward Genre Influence Table"),
               DT::dataTableOutput("combinedGenreInfluenceTable"),
               helpText("Legend:"),
+              br(), 
               helpText("Total_Music = Total no. of music in the genre."),
-              helpText("Genre_Influencing_Oceanus = No. of songs influencing Oceanus Folk."),
-              helpText("Perc_Oceanus_In = Percentage influence on Oceanus Folk."),
-              helpText("Oceanus_Influence = No. of songs Oceanus Folk influenced."),
-              helpText("Perc_Oceanus = Percentage of genre influenced by Oceanus Folk.")
+              br(),
+              helpText("Influencing Oceanus = No. of songs influencing Oceanus Folk."),
+              br(),
+              helpText("% Oceanus (Inward) = Percentage of inward influence on Oceanus Folk."),
+              br(),
+              helpText("Oceanus Influence = No. of songs Oceanus Folk influenced."),
+              br(),
+              helpText("% Oceanus (Outward) = Percentage of genre influenced by Oceanus Folk.")
             ))
             
           )
