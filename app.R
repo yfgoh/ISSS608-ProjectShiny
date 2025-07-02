@@ -91,7 +91,7 @@ ui <- navbarPage(
                         ),
                         mainPanel(
                           br(),
-                          h5("Hover your mouse over the nodes below to explore Sailor Shift's work"),
+                          h6("Hover your mouse over the nodes below to explore Sailor Shift's work"),
                           withSpinner(girafeOutput("sailorWorkPlot", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("sailorBio"),
@@ -114,8 +114,8 @@ ui <- navbarPage(
                         ),
                         mainPanel(
                           br(),
-                          h4("Who has Sailor Shift been most influenced by over time?"),
-                          h5("The visualisation shows all Persons and Musical Groups that have influenced Sailor Shift's work."),
+                          h5("Who has Sailor Shift been most influenced by over time?"),
+                          h6("The visualisation shows all Persons and Musical Groups that have influenced Sailor Shift's work. Use the interactive visualization to explore these influence relationships in more detail"),
                           withSpinner(girafeOutput("influencedByPlot", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1a")
@@ -135,8 +135,8 @@ ui <- navbarPage(
                         ),
                         mainPanel(
                           br(),
-                          h4("Who has Sailor Shift collaborated with and directly or indirectly influenced?"),
-                          h5("Hover your mouse over the nodes below to learn more about her collaborators"),
+                          h5("Who has Sailor Shift collaborated with and directly or indirectly influenced?"),
+                          h6("Hover your mouse over the nodes below to learn more about her collaborators"),
                           withSpinner(girafeOutput("collabInfluenceNetwork", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1b")
@@ -148,17 +148,17 @@ ui <- navbarPage(
                       sidebarLayout(
                         sidebarPanel(
                           sliderInput("degree_sep", "Degree of Separation:", min = 1, max = 13,
-                                      value = 13, step = 1, sep = "", animate = animationOptions(interval = 2000, loop = FALSE)),
+                                      value = 13, step = 1, sep = "", animate = animationOptions(interval = 3000, loop = FALSE)),
                           checkboxInput(
                             inputId = "include_infinite",
-                            label = "Include Infinite (Unreachable) Nodes",
+                            label = "Nodes that are unconnected to Sailor Shift",
                             value = TRUE
                           ),
                           helpText("Adjust the degree of separation to uncover how artists are interconnected across the network"),
                         ),
                         mainPanel(
                           br(),
-                          h4("How has Sailor Shift influenced collaborators of the broader Oceanus Folk community?"),
+                          h5("How has Sailor Shift influenced collaborators of the broader Oceanus Folk community?"),
                           withSpinner(girafeOutput("broadInfluencePlot", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1c")
@@ -558,7 +558,7 @@ server <- function(input, output, session) {
   
   output$insight_1a <- renderUI({
     HTML("
-    <h4>Key observations:</h4>
+    <h5>Insights:</h4>
     <ul>
       <li>Most other artists and groups have only produced a single work that influenced one of Sailor Shift's creations</li>
       <li><strong>Wei Zhao stands out</strong> as having influenced Sailor Shift multiple times:</li>
@@ -567,13 +567,12 @@ server <- function(input, output, session) {
         <li>Composed <em>Silent Steps in the Forest's Embrace</em> which influenced her song <em>Moon Over the Tide</em></li>
       </ul>
     </ul>
-    
-    <p>Use the interactive visualization to explore these influence relationships in more detail.</p>
     ")
   })
   
   output$insight_1b <- renderUI({
     HTML("
+    <h5>Insights:</h4>
     <ul>
       <li>Sailor Shift has collaborated with a wide variety of artists throughout the years.
       </li>
@@ -587,9 +586,19 @@ server <- function(input, output, session) {
   })
   
   output$insight_1c <- renderUI({
-    HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
+    HTML("
+    <h5>Insights:</h4>
+    <ul>
+      <li>This graph is displays a network overview of all People/Musical Groups who have produced Oceanus Folk Songs/Albums.
+      </li>
+      <li>While Sailor Shift is connected to a portion of the Oceanus Folk community, most artists in this genre remain outside her influence network - either as distant connections (3rd to 13th degree) or completely unconnected..
+      </li>
+      <li>In conclusion, Sailor Shift has a moderate influence on the broader Oceanus Folk community since her impact is discernible but not widespread.</li>
+        </ul>
+      </li>
+    </ul>
+  ")
   })
-  
   output$insight_2a <- renderUI({
     HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
   })
