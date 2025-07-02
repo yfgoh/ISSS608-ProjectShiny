@@ -261,7 +261,6 @@ Question3_b_Server <- function(input, output, session) {
         "<br>Star Factor: ", round(composite_score, 3)
       )
     ) %>%
-      config(displayModeBar = FALSE) %>%
       add_trace(
         data = star_factor_2,
         x = ~year,
@@ -336,7 +335,7 @@ Question3_b_Server <- function(input, output, session) {
         showlegend = FALSE
       )%>%
       layout(
-        title = "Star Factor Prediction for the Next 5 Years",
+        title = glue("Selected {toString(debounced_genres_3_b())} Artists Star Factor Prediction for the Next 5 Years"),
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -369,7 +368,7 @@ Question3_b_Server <- function(input, output, session) {
             xref = "x", yref = "y",
             xanchor = "left",
             showarrow = TRUE, arrowhead = 2,
-            ax = 10, ay = -10,
+            ax = 20, ay = -10,
             font = list(color="black", size=12)
           )
         )
@@ -503,7 +502,7 @@ Question3_b_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = NULL,
+        title = "Music (Song/Album) Releases",
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -644,7 +643,7 @@ Question3_b_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = NULL,
+        title = "Notable Music (Song/Album) Releases",
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -806,7 +805,7 @@ Question3_b_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = NULL,
+        title = "New Artist Influences & Collaborations",
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -966,7 +965,7 @@ Question3_b_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = NULL,
+        title = "Influenced Music",
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  

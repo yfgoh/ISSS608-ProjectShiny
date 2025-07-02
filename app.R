@@ -25,6 +25,7 @@ library(htmlwidgets)
 library(fmsb)
 library(broom)
 library(purrr)
+library(glue)
 
 source("data_prep.R")  # Load your reactive function
 source("Question1_Server.R") # Load Q1 server
@@ -433,9 +434,9 @@ ui <- navbarPage(
                         mainPanel(  # Everything goes inside mainPanel
                           tabsetPanel(
                             tabPanel("Star Factor",
-                                     uiOutput("dynamic_title_3b"),
                                      withSpinner(plotlyOutput("predictedStars_3_b_plot")),
                                      tags$hr(),
+                                     uiOutput("dynamic_title_3b"),
                                      withSpinner(DT::dataTableOutput("predictedStars_3_b")),
                                      tags$hr(),
                                      htmlOutput("insight_3b")
@@ -443,21 +444,17 @@ ui <- navbarPage(
                             tabPanel("Artists' Details",
                                      fluidRow(
                                        column(width = 6,
-                                              h5("Music (Song/Album) Releases"),
                                               withSpinner(plotlyOutput("predictedStars_3b_1", height = "340px"))
                                        ),
                                        column(width = 6,
-                                              h5("Notable Music (Song/Album) Releases"),
                                               withSpinner(plotlyOutput("predictedStars_3b_2", height = "340px"))
                                        )
                                      ),
                                      fluidRow(
                                        column(width = 6,
-                                              h5("New Artist Influences & Collaborations"),
                                               withSpinner(plotlyOutput("predictedStars_3b_3", height = "340px"))
                                        ),
                                        column(width = 6,
-                                              h5("Influenced Music"),
                                               withSpinner(plotlyOutput("predictedStars_3b_4", height = "340px"))
                                        )
                                      )
