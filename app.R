@@ -85,10 +85,10 @@ ui <- navbarPage(
                         sidebarPanel(
                           selectInput("node_type_filter", "Filter Node Types:",
                                       choices = c("Song", "Album", "Person", "MusicalGroup"),
-                                      selected = c("Song", "Album"), multiple = TRUE),
+                                      selected = c("Song", "Album", "Person", "MusicalGroup"), multiple = TRUE),
                           selectInput("edge_type_filter", "Filter Edge Types:",
-                                      choices = c("Creator Of", "Influenced By","Member Of"),
-                                      selected = c("Creator Of", "Influenced By"), multiple = TRUE)
+                                      choices = c("Creator Of", "Influenced By", "Member Of"),
+                                      selected = c("Creator Of", "Influenced By", "Member Of"), multiple = TRUE)
                         ),
                         mainPanel(
                           br(),
