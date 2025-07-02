@@ -130,7 +130,7 @@ Question3_Server <- function(input, output, session) {
                title = paste("Star Profile: ", chosen_creator_1),
                calcex = 0.8,
                cex.main = 1.3,
-               vlabels = c("Total Music", "Notable\nHits", "Artist Influ & Colab", "Music\nInfluenced"),
+               vlabels = c("Total Music", "Hits", "Artist Influ & Colab", "Music\nInflu"),
                centerzero = TRUE)
   })
   
@@ -171,7 +171,7 @@ Question3_Server <- function(input, output, session) {
                title = paste("Star Profile: ", chosen_creator_2),
                calcex = 0.8,
                cex.main = 1.3,
-               vlabels = c("Total Music", "Notable\nHits", "Artist Influ & Colab", "Music\nInfluenced"),
+               vlabels = c("Total Music", "Hits", "Artist Influ & Colab", "Music\nInflu"),
                centerzero = TRUE)
   })
   
@@ -212,7 +212,7 @@ Question3_Server <- function(input, output, session) {
                title = paste("Star Profile: ", chosen_creator_3),
                calcex = 0.8,
                cex.main = 1.3,
-               vlabels = c("Total Music", "Notable\nHits", "Artist Influ & Colab", "Music\nInfluenced"),
+               vlabels = c("Total Music", "Hits", "Artist Influ & Colab", "Music\nInflu"),
                centerzero = TRUE)
   })
 }

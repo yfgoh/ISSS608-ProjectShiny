@@ -359,13 +359,13 @@ ui <- navbarPage(
                           # First: Radar Plots
                           fluidRow(
                             column(width = 4,
-                                   withSpinner(plotOutput("predictedStars_3_radar_1", height = "350px"))
+                                   withSpinner(plotOutput("predictedStars_3_radar_1", width = "100%", height = "300px"))
                             ),
                             column(width = 4,
-                                   withSpinner(plotOutput("predictedStars_3_radar_2", height = "350px"))
+                                   withSpinner(plotOutput("predictedStars_3_radar_2", width = "100%", height = "300px"))
                             ),
                             column(width = 4,
-                                   withSpinner(plotOutput("predictedStars_3_radar_3", height = "350px"))
+                                   withSpinner(plotOutput("predictedStars_3_radar_3", width = "100%", height = "300px"))
                             )
                           ),
                           tags$hr(),
