@@ -521,7 +521,8 @@ Question2_Server <- function(input, output, session) {
     target_names <- nodes$name[nodes$name != "Oceanus Folk"]
     n_targets <- length(target_names)
     
-    target_colours <- viridisLite::turbo(n_targets)
+    positions <- seq(0, 1, length.out = n_targets)
+    target_colours <- viridisLite::turbo(256)[round(positions * 255) + 1]
     
     # Combine with fixed Oceanus Folk colour
     all_colours <- c("#2E3192", target_colours)
