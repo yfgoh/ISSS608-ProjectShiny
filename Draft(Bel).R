@@ -1,3 +1,250 @@
+### original tab 2
+
+
+
+tabPanel(
+  title = "Outward Influence on other Genres",
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        "selected_genre",
+        "Select Genre:",
+        choices = c("All", sort(unique(genre_influence_stats$song_genre))),
+        selected = "All",
+        width = "100%"
+      ),
+      helpText("Select a genre to view how Oceanus Folk has influenced it.")
+    ),
+    
+    mainPanel(
+      # Row 1: Interpretation text (on top)
+      fluidRow(column(
+        width = 12,
+        h4("Sankey Diagram: Top Influenced Genre"),
+        helpText(
+          "To determine which genres have been most influenced by Oceanus Folk, all songs and albums were identified. Then, the music (Songs/Albums) that influenced them were obtained to calculate the frequency and percentage of Oceanus Folk's influence across different musical genre. This analysis reveals the genres that show the strongest impact from Oceanus Folk's musical style."
+        )
+      )),
+      br(),
+      # Row 2: Sankey diagram (below text)
+      fluidRow(column(
+        width = 12,
+        sankeyNetworkOutput("genreSankey", height = "400px")
+      )),
+      
+      br(),
+      
+      # Row 3: Table
+      fluidRow(column(
+        width = 12,
+        h6("Inward Genre Influence Table"),
+        DT::dataTableOutput("influencerGenreTable"),
+        helpText("Legend: Total_Music = Total no. of music under the genre."),
+        helpText("Genre Influencing Oceanus Folk = Number of music influencing Oceanus Folk."),
+        helpText("Percentage_oceanus_influence = Percentage of music influencing Oceanus Folk.")
+      )),
+      br(),
+      fluidRow(column(
+        width = 12,
+        h6("Outward Genre Influence Table"),
+        DT::dataTableOutput("genreTable"),
+        helpText("Legend: Total_Music = Total no. of music under the genre."),
+        helpText("Oceanus_Influence = Number of influenced music by Oceanus Folk."),
+        helpText("Perc_Oceanus = Percentage of music influenced by Oceanus Folk.")
+      ))
+      
+    )
+  )),
+
+
+#### server:
+
+output$genreSankey <- renderSankeyNetwork({
+  # Step 1: Start from full data
+  filtered_stats <- genre_influence_stats
+  
+  # Step 2: Filter by selected genre (unless "All")
+  if (!is.null(input$selected_genre) && input$selected_genre != "All") {
+    filtered_stats <- filtered_stats %>%
+      filter(song_genre == input$selected_genre)
+  }
+  
+  # Step 3: Summarize and structure links
+  filtered_stats <- filtered_stats %>%
+    group_by(song_genre) %>%
+    summarize(oceanus_influences = sum(oceanus_influences, na.rm = TRUE)) %>%
+    mutate(
+      source = "Oceanus Folk",
+      raw_target = ifelse(song_genre == "Oceanus Folk", "Oceanus Folk (in-genre influence)", song_genre),
+      target = paste0(raw_target, " (", oceanus_influences, ")"),
+      value = oceanus_influences
+    ) %>%
+    select(source, target, value) %>%
+    arrange(desc(value)) %>%
+    head(22)
+  
+  # Step 4: Create nodes and links
+  nodes <- data.frame(name = unique(c(filtered_stats$source, filtered_stats$target)))
+  
+  links <- filtered_stats %>%
+    mutate(
+      source = match(source, nodes$name) - 1,
+      target = match(target, nodes$name) - 1
+    )
+  
+  # Step 5: Create Sankey
+  sankey <- sankeyNetwork(
+    Links = as.data.frame(links),
+    Nodes = as.data.frame(nodes),
+    Source = "source",
+    Target = "target",
+    Value = "value",
+    NodeID = "name",
+    fontSize = 13,
+    nodeWidth = 30,
+    sinksRight = TRUE
+  )
+  
+  sankey
+})
+
+
+output$influencerGenreTable <- DT::renderDataTable({
+  selected <- input$selected_genre
+  
+  # Filter table if a specific genre is selected
+  table_data <- genre_influenced_by_stats
+  if (!is.null(selected) && selected != "All") {
+    table_data <- table_data %>% filter(influenced_by_genre == selected)
+  }
+  
+  # Rename and reorder columns
+  table_data %>%
+    rename(
+      `Genre` = influenced_by_genre,
+      `Total Music` = total_music,
+      `Genre influencing Oceanus Folk` = influenced_by
+    ) %>%
+    select(`Genre`, `Total Music`, `Genre influencing Oceanus Folk`, Percentage_oceanus_influence)
+}, options = list(
+  pageLength = 10,
+  scrollX = TRUE,
+  autoWidth = TRUE
+), rownames = FALSE)
+
+
+output$genreTable <- DT::renderDataTable({
+  selected <- input$selected_genre
+  
+  # Filter data based on selected genre
+  table_data <- genre_influence_stats
+  if (!is.null(selected) && selected != "All") {
+    table_data <- table_data %>% filter(song_genre == selected)
+  }
+  
+  table_data %>%
+    select(
+      Genre = song_genre,
+      Total_Music = total_music,
+      Oceanus_Influence = oceanus_influences,
+      Perc_Oceanus = perc_oceanus
+    ) %>%
+    arrange(desc(Oceanus_Influence))
+}, options = list(
+  pageLength = 10,
+  scrollX = TRUE,
+  autoWidth = TRUE
+), rownames = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+##original tab 4. 
+
+tabPanel(
+  title = "Inward Influence from other Genres",
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        "selected_inward_influence_genre",
+        "Select Genre:",
+        choices = c("All", sort(unique(genre_influence_stats$song_genre))),
+        selected = "All",
+        width = "100%"
+      ),
+      helpText("Select a genre to view how it has influenced Oceanus Folk.")
+    ),
+    
+    mainPanel(
+      # Row 1: Interpretation text (on top)
+      fluidRow(column(
+        width = 12,
+        h4("Sankey Diagram: Genres that Influenced Oceanus Folk"),
+        helpText(
+          "To determine which genres have most influenced Oceanus Folk, all Oceanus Folk songs/albums were analyzed along with the genres of songs that influenced them. This reveals the external genres that shaped Oceanus Folk's evolution."
+        )
+      )),
+      br(),
+      # Row 2: Sankey diagram
+      fluidRow(column(
+        width = 12,
+        sankeyNetworkOutput("influencerSankey", height = "400px")
+      )),
+      
+      br(),
+      
+      # Row 3: Table
+      fluidRow(column(
+        width = 12,
+        DT::dataTableOutput("influencerGenreTable")
+      ))
+    )
+  )),
+
+
+output$influencerGenreTable <- DT::renderDataTable({
+  selected <- input$selected_inward_influence_genre
+  
+  # Filter table if a specific genre is selected
+  table_data <- genre_influenced_by_stats
+  if (!is.null(selected) && selected != "All") {
+    table_data <- table_data %>% filter(influenced_by_genre == selected)
+  }
+  
+  # Rename and reorder columns
+  table_data %>%
+    rename(
+      `Genre` = influenced_by_genre,
+      `Total Music` = total_music,
+      `Genre influencing Oceanus Folk` = influenced_by
+    ) %>%
+    select(`Genre`, `Total Music`, `Genre influencing Oceanus Folk`, Percentage_oceanus_influence)
+}, options = list(
+  pageLength = 10,
+  scrollX = TRUE,
+  autoWidth = TRUE
+), rownames = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
 tabPanel("Career Trajectories & Influence Comparison",
          sidebarLayout(
            sidebarPanel(

@@ -206,7 +206,7 @@ ui <- navbarPage(
       ############ Tab 2
       
       tabPanel(
-        title = "Outward Influence on other Genres",
+        title = "Inward and Outward Influence on other Genres",
         sidebarLayout(
           sidebarPanel(
             selectInput(
@@ -237,14 +237,19 @@ ui <- navbarPage(
             
             br(),
             
+            # Row 3: Table
             fluidRow(column(
               width = 12,
-              DT::dataTableOutput("genreTable"),
-              helpText("Legend: Total_Music = Total no. of music under the genre."),
-              helpText("Oceanus_Influence = Number of influenced music by Oceanus Folk."),
-              helpText("Total_Influenced = Number of influenced music in the genre."),
-              helpText("Perc_Oceanus = Percentage of music influenced by Oceanus Folk.")
+              h6("Combined Inward and Outward Genre Influence Table"),
+              DT::dataTableOutput("combinedGenreInfluenceTable"),
+              helpText("Legend:"),
+              helpText("Total_Music = Total no. of music in the genre."),
+              helpText("Genre_Influencing_Oceanus = No. of songs influencing Oceanus Folk."),
+              helpText("Perc_Oceanus_In = Percentage influence on Oceanus Folk."),
+              helpText("Oceanus_Influence = No. of songs Oceanus Folk influenced."),
+              helpText("Perc_Oceanus = Percentage of genre influenced by Oceanus Folk.")
             ))
+            
           )
         )),
       
@@ -291,46 +296,7 @@ ui <- navbarPage(
         )
       ),
       ############ Tab 4
-      
-      tabPanel(
-        title = "Inward Influence from other Genres",
-        sidebarLayout(
-          sidebarPanel(
-            selectInput(
-              "selected_inward_influence_genre",
-              "Select Genre:",
-              choices = c("All", sort(unique(genre_influence_stats$song_genre))),
-              selected = "All",
-              width = "100%"
-            ),
-            helpText("Select a genre to view how it has influenced Oceanus Folk.")
-          ),
-          
-          mainPanel(
-            # Row 1: Interpretation text (on top)
-            fluidRow(column(
-              width = 12,
-              h4("Sankey Diagram: Genres that Influenced Oceanus Folk"),
-              helpText(
-                "To determine which genres have most influenced Oceanus Folk, all Oceanus Folk songs/albums were analyzed along with the genres of songs that influenced them. This reveals the external genres that shaped Oceanus Folk's evolution."
-              )
-            )),
-            br(),
-            # Row 2: Sankey diagram
-            fluidRow(column(
-              width = 12,
-              sankeyNetworkOutput("influencerSankey", height = "400px")
-            )),
-            
-            br(),
-            
-            # Row 3: Table
-            fluidRow(column(
-              width = 12,
-              DT::dataTableOutput("influencerGenreTable")
-            ))
-          )
-        )),
+
       
       ############ Tab 5
       

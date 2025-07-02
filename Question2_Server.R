@@ -283,79 +283,193 @@ Question2_Server <- function(input, output, session) {
 
   ######################################### 2b ###################################
   
-
   output$genreSankey <- renderSankeyNetwork({
-    # Step 1: Start from full data
-    filtered_stats <- genre_influence_stats
+    selected <- input$selected_genre
     
-    # Step 2: Filter by selected genre (unless "All")
-    if (!is.null(input$selected_genre) && input$selected_genre != "All") {
-      filtered_stats <- filtered_stats %>%
-        filter(song_genre == input$selected_genre)
-    }
-    
-    # Step 3: Summarize and structure links
-    filtered_stats <- filtered_stats %>%
-      group_by(song_genre) %>%
-      summarize(oceanus_influences = sum(oceanus_influences, na.rm = TRUE)) %>%
-      mutate(
-        source = "Oceanus Folk",
-        raw_target = ifelse(song_genre == "Oceanus Folk", "Oceanus Folk (in-genre influence)", song_genre),
-        target = paste0(raw_target, " (", oceanus_influences, ")"),
-        value = oceanus_influences
-      ) %>%
-      select(source, target, value) %>%
-      arrange(desc(value)) %>%
-      head(22)
-    
-    # Step 4: Create nodes and links
-    nodes <- data.frame(name = unique(c(filtered_stats$source, filtered_stats$target)))
-    
-    links <- filtered_stats %>%
-      mutate(
-        source = match(source, nodes$name) - 1,
-        target = match(target, nodes$name) - 1
+    # Step 1: Filter and format links
+    # Step 1: Filter and format links based on selected genre
+    inward_links <- genre_influenced_by_stats %>%
+      filter(influenced_by > 0) %>%
+      {
+        if (!is.null(selected) && selected != "All") {
+          filter(., influenced_by_genre == selected)
+        } else .
+      } %>%
+      transmute(
+        source = paste0(influenced_by_genre, " [In] (", influenced_by, ")"),
+        target = "Oceanus Folk",
+        value = influenced_by,
+        genre  = influenced_by_genre
       )
     
-    # Step 5: Create Sankey
-    sankey <- sankeyNetwork(
-      Links = as.data.frame(links),
-      Nodes = as.data.frame(nodes),
+    outward_links <- genre_influence_stats %>%
+      filter(oceanus_influences > 0) %>%
+      {
+        if (!is.null(selected) && selected != "All") {
+          filter(., song_genre == selected)
+        } else .
+      } %>%
+      transmute(
+        source = "Oceanus Folk",
+        target = paste0(song_genre, " [Out] (", oceanus_influences, ")"),
+        value = oceanus_influences,
+        genre  = song_genre
+      )
+    
+    # Step 2: Combine links
+    combined_links <- bind_rows(inward_links, outward_links)
+    
+    # Step 3: Compute node flow (for sorting)
+    node_flow <- combined_links %>%
+      pivot_longer(cols = c(source, target), names_to = "direction", values_to = "node") %>%
+      group_by(node) %>%
+      summarise(total_value = sum(value), .groups = "drop") %>%
+      arrange(desc(total_value))
+    
+    # Step 4: Define sorted nodes
+    nodes_df <- node_flow %>%
+      mutate(id = row_number() - 1) %>%
+      rename(name = node)
+    
+    # Assign genre group for coloring
+    get_genre <- function(label) gsub(" \\[.*$", "", label)
+    nodes_df$group <- sapply(nodes_df$name, get_genre)
+    
+    # Step 5: Update links to match new node index
+    links_df <- combined_links %>%
+      mutate(
+        source = match(source, nodes_df$name) - 1,
+        target = match(target, nodes_df$name) - 1
+      )
+    
+    # Step 6: Define genre color palette
+    genre_palette <- c(
+      "Oceanus Folk"           = "#1f77b4",  # blue
+      "Indie Folk"             = "#ff7f0e",  # orange
+      "Synthwave"              = "#2ca02c",  # green
+      "Dream Pop"              = "#d62728",  # red
+      "Doom Metal"             = "#9467bd",  # purple
+      "Psychedelic Rock"       = "#8c564b",  # brown
+      "Alternative Rock"       = "#e377c2",  # pink
+      "Indie Rock"             = "#7f7f7f",  # gray
+      "Desert Rock"            = "#bcbd22",  # yellow-green
+      "Americana"              = "#17becf",  # cyan
+      "Space Rock"             = "#ff9896",  # coral
+      "Synthpop"               = "#98df8a",  # mint green
+      "Blues Rock"             = "#aec7e8",  # light blue
+      "Symphonic Metal"        = "#c5b0d5",  # lavender
+      "Avant-Garde Folk"       = "#f7b6d2",  # rose
+      "Post-Apocalyptic Folk"  = "#c49c94",  # warm gray
+      "Celtic Folk"            = "#dbdb8d",  # olive
+      "Emo/Pop Punk"           = "#9edae5",  # pale cyan
+      "Indie Pop"              = "#ffbb78",  # soft orange
+      "Jazz Surf Rock"         = "#c7c7c7",  # light gray
+      "Lo-Fi Electronica"      = "#bc80bd"   # dusty violet
+    )
+    
+    genre_colors <- genre_palette[unique(nodes_df$group)]
+    colour_scale <- sprintf(
+      'd3.scaleOrdinal().domain(%s).range(%s)',
+      toJSON(names(genre_colors), auto_unbox = TRUE),
+      toJSON(unname(genre_colors), auto_unbox = TRUE)
+    )
+    
+    # Step 7: Render Sankey
+    p <- sankeyNetwork(
+      Links = links_df,
+      Nodes = nodes_df,
       Source = "source",
       Target = "target",
       Value = "value",
       NodeID = "name",
+      NodeGroup = "group",
       fontSize = 13,
       nodeWidth = 30,
-      sinksRight = TRUE
+      sinksRight = TRUE,
+      colourScale = JS(colour_scale)
     )
     
-    sankey
+    # Step 8: Add hover tooltip
+    onRender(p, '
+    function(el, x) {
+      d3.select(el).selectAll(".link")
+        .append("title")
+        .text(function(d) {
+          return d.source.name + " → " + d.target.name + ": " + d.value;
+        });
+    }
+  ')
   })
   
-  output$genreTable <- DT::renderDataTable({
+  
+  output$combinedGenreInfluenceTable <- DT::renderDataTable({
     selected <- input$selected_genre
     
-    # Filter data based on selected genre
-    table_data <- genre_influence_stats
+    # Outward influence stats
+    outward <- genre_influence_stats %>%
+      rename(
+        Genre = song_genre,
+        Oceanus_Influence = oceanus_influences,
+        Perc_Oceanus = perc_oceanus
+      )
+    
+    # Inward influence stats
+    inward <- genre_influenced_by_stats %>%
+      rename(
+        Genre = influenced_by_genre,
+        Total_Music = total_music,
+        Genre_Influencing_Oceanus = influenced_by,
+        Perc_Oceanus_In = Percentage_oceanus_influence
+      )
+    
+    # Join
+    combined <- full_join(inward, outward, by = "Genre")
+    
+    # Filter if genre is selected
     if (!is.null(selected) && selected != "All") {
-      table_data <- table_data %>% filter(song_genre == selected)
+      combined <- combined %>% filter(Genre == selected)
     }
     
-    table_data %>%
+    # Final column order: Inward first
+    combined <- combined %>%
       select(
-        Genre = song_genre,
-        Total_Music = total_music,
-        Oceanus_Influence = oceanus_influences,
-        Total_Influenced = total_influences,
-        Perc_Oceanus = perc_oceanus
-      ) %>%
-      arrange(desc(Oceanus_Influence))
-  }, options = list(
-    pageLength = 10,
-    scrollX = TRUE,
-    autoWidth = TRUE
-  ), rownames = FALSE)
+        Genre,
+        Total_Music,
+        Genre_Influencing_Oceanus,
+        Perc_Oceanus_In,
+        Oceanus_Influence,
+        Perc_Oceanus
+      )
+    
+    # Rename column names with <br> line breaks
+    colnames(combined) <- c(
+      "Genre",
+      "Total<br>Music",
+      "Influencing<br>Oceanus",
+      "%<br>Oceanus<br>(Inward)",
+      "Oceanus<br>Influenced",
+      "%<br>Oceanus<br>(Outward)"
+    )
+    
+    DT::datatable(
+      combined,
+      options = list(
+        pageLength = 10,
+        scrollX = TRUE,
+        autoWidth = FALSE,
+        columnDefs = list(list(className = 'dt-center', targets = "_all")),  # Center all columns
+        headerCallback = JS("
+          function(thead, data, start, end, display) {
+            $(thead).find('th').css('text-align', 'center');
+          }
+        ")
+      ),
+      escape = FALSE,
+      rownames = FALSE,
+      class = 'stripe hover cell-border'
+    )
+  })  # ✅ Final closing bracket for renderDataTable()
+  
   
   ###############2c##############################
   
@@ -445,7 +559,6 @@ Question2_Server <- function(input, output, session) {
     scrollX = TRUE,
     autoWidth = TRUE
   ), rownames = FALSE)
-  
   
   
   
