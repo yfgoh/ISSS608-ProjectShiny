@@ -29,6 +29,7 @@ library(glue)
 
 source("data_prep.R")  # Load your reactive function
 source("Question1_Server.R") # Load Q1 server
+source("Question1_explore_Server.R") # Load Q1 server
 source("Question2_Server.R") # Load Q2 server
 source("Question3_Server.R") # Load Q3 server
 source("Question3_a_Server.R") # Load Q3a server
@@ -302,7 +303,7 @@ ui <- navbarPage(
         )
       ),
       ############ Tab 4
-
+      
       
       ############ Tab 5
       
@@ -465,65 +466,135 @@ ui <- navbarPage(
                       )
              )
            )
+  ),
+  ######################## Question 1 Explore ############################
+  tabPanel("Explore Other Artists",
+           tabsetPanel(
+             tabPanel("Artist's Work", 
+                      sidebarLayout(
+                        sidebarPanel(
+                          selectizeInput("artist_1", "Select Artist:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectInput("node_type_filter_e_1", "Filter Node Types:",
+                                      choices = c("Song", "Album", "Person", "MusicalGroup"),
+                                      selected = c("Song", "Album", "Person", "MusicalGroup"), multiple = TRUE),
+                          selectInput("edge_type_filter_e_1", "Filter Edge Types:",
+                                      choices = c("Creator Of", "Influenced By", "Member Of"),
+                                      selected = c("Creator Of", "Influenced By", "Member Of"), multiple = TRUE)
+                        ),
+                        mainPanel(
+                          br(),
+                          h6("Hover your mouse over the nodes below to explore the Selected Artist's work"),
+                          withSpinner(girafeOutput("explore_1", width = "100%", height = "600px"))
+                        )
+                      )
+             ),
+             ######################## Question 1a ##############################
+             tabPanel("Primary Influences",
+                      sidebarLayout(
+                        sidebarPanel(
+                          selectizeInput("artist_2", "Select Artist:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectInput("node_type_filter", "Filter Node Types:",
+                                      choices = c("Song", "Album", "MusicalGroup", "Person"),
+                                      selected = c("Song", "Album", "MusicalGroup", "Person"), multiple = TRUE),
+                          selectInput("edge_type_filter", "Filter Edge Types:",
+                                      choices = c("Creator Of", "Influenced By", "Member Of"),
+                                      selected = c("Creator Of", "Influenced By", "Member Of"), multiple = TRUE)
+                        ),
+                        mainPanel(
+                          br(),
+                          h5("Who has the Selected Artist been most influenced by over time?"),
+                          h6("The visualisation shows all Persons and Musical Groups that have influenced the Selected Artist's work. Use the interactive visualization to explore these influence relationships in more detail"),
+                          withSpinner(girafeOutput("explore_2", width = "100%", height = "600px"))
+                        )
+                      )
+             ),
+             ######################## Question 1b ##############################
+             tabPanel("Collaborations & Influences",
+                      sidebarLayout(
+                        sidebarPanel(
+                          selectizeInput("artist_3", "Select Artist:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectInput("node_type_filter", "Filter Node Types:",
+                                      choices = c("Song", "Album", "MusicalGroup", "Person"),
+                                      selected = c("Song", "Album", "MusicalGroup","Person"), multiple = TRUE),
+                          selectInput("edge_type_filter", "Filter Edge Types:",
+                                      choices = c("Creator Of", "Influenced By", "Member Of"),
+                                      selected = c("Creator Of", "Influenced By", "Member Of"), multiple = TRUE)
+                        ),
+                        mainPanel(
+                          br(),
+                          h5("Who has the Selected Artist collaborated with and directly or indirectly influenced?"),
+                          h6("Hover your mouse over the nodes below to learn more about the collaborators"),
+                          withSpinner(girafeOutput("explore_3", width = "100%", height = "600px"))
+                        )
+                      )
+             ),
+
+             
+           )
   )
 )
-
-
-server <- function(input, output, session) {
-  
-  output$influenceTree <- renderCollapsibleTree({
-    collapsibleTree(
-      df = data.frame(
-        Genre = "Oceanus Folk", 
-        Mentor = "Ivy Echoes", 
-        Artist = "Sailor Shift"
-      ),
-      hierarchy = c("Genre", "Mentor", "Artist"),
-      root = "Oceanus Folk"
-    )
-  })
-  
-  ######################################## Question 1 ###################################
-  
-  Question1_Server(input, output, session)  
   
   
-  ######################################## Question 2 ###################################
-  
-  Question2_Server(input, output, session)
-  
-  ############################### Question 3 Table ##################################
-  
-  Question3_Server(input, output, session)
-  
-  Question3_a_Server(input, output, session)
-  
-  Question3_b_Server(input, output, session)
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  output$insight_1a <- renderUI({
-    HTML("
+  server <- function(input, output, session) {
+    
+    output$influenceTree <- renderCollapsibleTree({
+      collapsibleTree(
+        df = data.frame(
+          Genre = "Oceanus Folk", 
+          Mentor = "Ivy Echoes", 
+          Artist = "Sailor Shift"
+        ),
+        hierarchy = c("Genre", "Mentor", "Artist"),
+        root = "Oceanus Folk"
+      )
+    })
+    
+    ######################################## Question 1 ###################################
+    
+    Question1_Server(input, output, session)  
+    
+    Question1_explore_Server(input, output, session)  
+    
+    
+    ######################################## Question 2 ###################################
+    
+    Question2_Server(input, output, session)
+    
+    ############################### Question 3 Table ##################################
+    
+    Question3_Server(input, output, session)
+    
+    Question3_a_Server(input, output, session)
+    
+    Question3_b_Server(input, output, session)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    output$insight_1a <- renderUI({
+      HTML("
     <h5>Insights:</h4>
     <ul>
       <li>Most other artists and groups have only produced a single work that influenced one of Sailor Shift's creations</li>
@@ -534,10 +605,10 @@ server <- function(input, output, session) {
       </ul>
     </ul>
     ")
-  })
-  
-  output$insight_1b <- renderUI({
-    HTML("
+    })
+    
+    output$insight_1b <- renderUI({
+      HTML("
     <h5>Insights:</h4>
     <ul>
       <li>Sailor Shift has collaborated with a wide variety of artists throughout the years.
@@ -549,10 +620,10 @@ server <- function(input, output, session) {
       </li>
     </ul>
   ")
-  })
-  
-  output$insight_1c <- renderUI({
-    HTML("
+    })
+    
+    output$insight_1c <- renderUI({
+      HTML("
     <h5>Insights:</h4>
     <ul>
       <li>This graph is displays a network overview of all People/Musical Groups who have produced Oceanus Folk Songs/Albums.
@@ -564,32 +635,32 @@ server <- function(input, output, session) {
       </li>
     </ul>
   ")
-  })
-  output$insight_2a <- renderUI({
-    HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
-  })
-  
-  output$insight_2b <- renderUI({
-    HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
-  })
-  
-  output$insight_2c <- renderUI({
-    HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
-  })
-  
-  output$careerComparePlot <- renderPlot({
-    years <- 2020:2030
-    plot(years, c(5, 10, 20, 30, 45, 60, 70, 80, 85, 90, 92), type = "l", col = "#0073B7",
-         ylim = c(0, 100), xlab = "Year", ylab = "No. of Notable Songs", lwd = 2,
-         main = "No. of Notable Songs Over Time")
-    lines(years, c(2, 4, 10, 18, 25, 30, 40, 55, 60, 70, 75), col = "#E67E22", lwd = 2)
-    lines(years, c(1, 2, 4, 8, 12, 20, 28, 35, 45, 55, 60), col = "#1ABC9C", lwd = 2)
-    legend("bottomright", legend = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
-           col = c("#0073B7", "#E67E22", "#1ABC9C"), lty = 1, lwd = 2)
-  })
-  
-  output$insight_3a <- renderUI({
-    HTML("
+    })
+    output$insight_2a <- renderUI({
+      HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
+    })
+    
+    output$insight_2b <- renderUI({
+      HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
+    })
+    
+    output$insight_2c <- renderUI({
+      HTML("<p><strong>Insight:</strong> <To be Added>.</p>")
+    })
+    
+    output$careerComparePlot <- renderPlot({
+      years <- 2020:2030
+      plot(years, c(5, 10, 20, 30, 45, 60, 70, 80, 85, 90, 92), type = "l", col = "#0073B7",
+           ylim = c(0, 100), xlab = "Year", ylab = "No. of Notable Songs", lwd = 2,
+           main = "No. of Notable Songs Over Time")
+      lines(years, c(2, 4, 10, 18, 25, 30, 40, 55, 60, 70, 75), col = "#E67E22", lwd = 2)
+      lines(years, c(1, 2, 4, 8, 12, 20, 28, 35, 45, 55, 60), col = "#1ABC9C", lwd = 2)
+      legend("bottomright", legend = c("Sailor Shift", "Maya Blue", "Juno Rivers"),
+             col = c("#0073B7", "#E67E22", "#1ABC9C"), lty = 1, lwd = 2)
+    })
+    
+    output$insight_3a <- renderUI({
+      HTML("
 
     <p>Based on previous tab's analysis, the top artists in each category are:</p>
     <ul>
@@ -610,11 +681,11 @@ server <- function(input, output, session) {
     <strong>Recency of Influence</strong>
     <p>Sailor Shift’s influence is the most recent, with new connections as recent as 2040. In comparison, Jay Walters’ last recorded influence was in 2035, and Min Fu’s influence dates back to 2030.</p>
   ")
-  })
-  
-  
-  output$insight_3b <- renderUI({
-    HTML("
+    })
+    
+    
+    output$insight_3b <- renderUI({
+      HTML("
     <p><h4>Predictions</h4></p>
 
     <p><strong>Note:</strong> Sailor Shift, ranked 1st in Oceanus Folk star factor, is already recognized as a global superstar and a central figure in the genre. As such, she is excluded from this prediction, which focuses on emerging artists poised to become the next Oceanus Folk stars.</p>
@@ -628,7 +699,7 @@ server <- function(input, output, session) {
     <strong>3. Xiulan Ye</strong>
     <p>Xiulan Ye, along with Donna Caldwell, co-produced two influential songs: Basque Shore and Destiny’s Call. Their last Oceanus Folk work was released in 2017 and was last referred to in 2030. However, Xiulan Ye is slightly more established, having also produced Unbound in the Doom Metal genre. Based on this broader influence and track record, Xiulan Ye is predicted as the third rising Oceanus Folk star, though Donna Caldwell also shows strong potential.</p>
   ")
-  })
-}
-
-shinyApp(ui, server)
+    })
+  }
+  
+  shinyApp(ui, server)
