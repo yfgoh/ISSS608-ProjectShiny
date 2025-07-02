@@ -512,7 +512,27 @@ Question2_Server <- function(input, output, session) {
       head(22)
     
     # Step 4: Create nodes and links
-    nodes <- data.frame(name = unique(c(filtered_stats$source, filtered_stats$target)))
+    nodes <- data.frame(name = unique(c(filtered_stats$source, filtered_stats$target))) %>%
+      mutate(
+        group = ifelse(name == "Oceanus Folk", "Oceanus Folk", name)
+      )
+    
+    # Generate up to N distinct target colours
+    target_names <- nodes$name[nodes$name != "Oceanus Folk"]
+    n_targets <- length(target_names)
+    
+    target_colours <- viridisLite::turbo(n_targets)
+    
+    # Combine with fixed Oceanus Folk colour
+    all_colours <- c("#2E3192", target_colours)
+    
+    # Create D3-compatible colour scale
+    colour_scale <- JS(sprintf(
+      'd3.scaleOrdinal().domain(%s).range(%s)',
+      jsonlite::toJSON(c("Oceanus Folk", target_names), auto_unbox = TRUE),
+      jsonlite::toJSON(all_colours, auto_unbox = TRUE)
+    ))
+    
     
     links <- filtered_stats %>%
       mutate(
@@ -528,9 +548,11 @@ Question2_Server <- function(input, output, session) {
       Target = "target",
       Value = "value",
       NodeID = "name",
+      NodeGroup = "group",
       fontSize = 13,
       nodeWidth = 30,
-      sinksRight = TRUE
+      sinksRight = TRUE,
+      colourScale = colour_scale,
     )
     
     sankey
