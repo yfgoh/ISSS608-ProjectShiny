@@ -324,7 +324,8 @@ Question3_b_Server <- function(input, output, session) {
         xaxis = list(
           title = NA,  
           dtick = 5,
-          automargin = TRUE
+          automargin = TRUE,
+          range = c(debounced_years_3_b()[1] - 1, debounced_years_3_b()[2] + 1)
         ),
         yaxis = list(
           title = "Yearly Count",
@@ -464,7 +465,8 @@ Question3_b_Server <- function(input, output, session) {
         xaxis = list(
           title = NA,  
           dtick = 5,
-          automargin = TRUE
+          automargin = TRUE,
+          range = c(debounced_years_3_b()[1] - 1, debounced_years_3_b()[2] + 1)
         ),
         yaxis = list(
           title = "Yearly Count",
@@ -625,7 +627,8 @@ Question3_b_Server <- function(input, output, session) {
         xaxis = list(
           title = NA,  
           dtick = 5,
-          automargin = TRUE
+          automargin = TRUE,
+          range = c(debounced_years_3_b()[1] - 1, debounced_years_3_b()[2] + 1)
         ),
         yaxis = list(
           title = "Yearly Count",
@@ -784,7 +787,8 @@ Question3_b_Server <- function(input, output, session) {
         xaxis = list(
           title = NA,  
           dtick = 5,
-          automargin = TRUE
+          automargin = TRUE,
+          range = c(debounced_years_3_b()[1] - 1, debounced_years_3_b()[2] + 1)
         ),
         yaxis = list(
           title = "Yearly Count",
