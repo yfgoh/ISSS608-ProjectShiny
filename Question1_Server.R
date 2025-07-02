@@ -112,40 +112,50 @@ Question1_Server <- function(input, output, session) {
   
   ## Data Table
   output$filteredNodeTable <- DT::renderDataTable({
-    sailor_node <- creator_and_songs_and_influenced_by_creator %>%
-      filter(creator_name == "Sailor Shift") %>%
-      pull(creator_from) %>%
-      unique()
+    # Step 0: Get name of 'Sailor Shift'
+    sailor_vertex_name <- mc1_nodes_clean %>%
+      filter(is_sailor == TRUE) %>%
+      pull(name)
     
-    sailor_songs <- creator_and_songs_and_influenced_by_creator %>%
-      filter(creator_from == sailor_node,
-             creator_from != influenced_by) %>%
-      pull(song_to)
+    # Step 1: Find outgoing edges from Sailor Shift
+    sailor_out_edges <- mc1_edges_clean %>%
+      filter(from == sailor_vertex_name)
     
-    sailor_songs_influenced <- creator_and_songs_and_influenced_by_creator %>%
-      filter(creator_from == sailor_node,
-             creator_from != influenced_by) %>%
-      pull(influenced_by)
+    # Step 2: Identify neighbour node names
+    sailor_out_node_names <- sailor_out_edges$to
     
-    sailor_songs_influenced_creators <- creator_and_songs_and_influenced_by_creator %>%
-      filter(creator_from == sailor_node,
-             creator_from != influenced_by) %>%
-      pull(influenced_by_creator)
+    # Step 4: Identify songs/albums (filtered by user input)
+    sailor_music_all <- mc1_nodes_clean %>%
+      filter(name %in% sailor_out_node_names, 
+             `Node Type` %in% input$node_type_filter) %>%
+      pull(name)
     
-    all_node_names <- unique(c(
-      sailor_node,
-      sailor_songs,
-      sailor_songs_influenced,
-      sailor_songs_influenced_creators
-    ))
+    # Step 5: Build subgraph using names
+    sub_nodes <- unique(c(sailor_vertex_name, sailor_music_all))
+    sub_graph <- graph %>%
+      activate(nodes) %>%
+      filter(name %in% sub_nodes)
+    
+    # Filter edges based on user input
+    filtered_edges <- sub_graph %>%
+      activate(edges) %>%
+      filter(`Edge Colour` %in% input$edge_type_filter)
     
     # Filter nodes only
-    filtered_nodes <- graph %>%
+    filtered_nodes <- filtered_edges %>%
       activate(nodes) %>%
-      filter(name %in% all_node_names) %>%
-      filter(`Node Type` %in% input$node_type_filter) %>%
-      as_tibble() %>%
-      select(name, node_name, `Node Type`, genre, notable, release_date, single)
+      filter(node_name != "Sailor Shift") %>%
+      as_tibble() %>%  # Convert to a proper data frame
+      select(node_name, `Node Type`, genre, notable, release_date, single) %>%
+      # Convert Node Type to a factor with custom level ordering
+      mutate(`Node Type` = factor(`Node Type`, 
+                                  levels = c("MusicalGroup", "Album", "Song"))) %>%
+      rename(`Name` = node_name,
+             `Genre` = genre,
+             `Notable` = notable,
+             `Release Date` = release_date,
+             `Single` = single) %>%  # Replace with your desired order
+      arrange(`Node Type`, `Name`)
     
     # Display the filtered node data as a table
     DT::datatable(filtered_nodes, options = list(pageLength = 5), rownames = FALSE)
