@@ -95,7 +95,7 @@ Question3_a_Server <- function(input, output, session) {
       hoverinfo = "text",
       hovertext = ~paste0(
         "Artist: ", chosen_creator_1,
-        "<br>Influence Date: ", release_date,
+        "<br>Release Date: ", release_date,
         "<br>Cumulative Count: ", cumulative_count
       )
     ) %>%
@@ -111,7 +111,7 @@ Question3_a_Server <- function(input, output, session) {
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_2,
-          "<br>Influence Date: ", release_date,
+          "<br>Release Date: ", release_date,
           "<br>Cumulative Count: ", cumulative_count
         )
       ) %>%
@@ -127,12 +127,12 @@ Question3_a_Server <- function(input, output, session) {
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_3,
-          "<br>Influence Date: ", release_date,
+          "<br>Release Date: ", release_date,
           "<br>Cumulative Count: ", cumulative_count
         )
       ) %>%
       layout(
-        title = NULL,
+        title = "Music (Song/Album) Releases",
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -229,7 +229,7 @@ Question3_a_Server <- function(input, output, session) {
       hoverinfo = "text",
       hovertext = ~paste0(
         "Artist: ", chosen_creator_1,
-        "<br>Influence Date: ", release_date,
+        "<br>Release Date: ", release_date,
         "<br>Cumulative Count: ", cumulative_count
       )
     ) %>%
@@ -245,7 +245,7 @@ Question3_a_Server <- function(input, output, session) {
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_2,
-          "<br>Influence Date: ", release_date,
+          "<br>Release Date: ", release_date,
           "<br>Cumulative Count: ", cumulative_count
         )
       ) %>%
@@ -261,12 +261,12 @@ Question3_a_Server <- function(input, output, session) {
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_3,
-          "<br>Influence Date: ", release_date,
+          "<br>Release Date: ", release_date,
           "<br>Cumulative Count: ", cumulative_count
         )
       ) %>%
       layout(
-        title = NULL,
+        title = "Notable Music (Song/Album) Releases",
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -421,7 +421,7 @@ Question3_a_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = NULL,
+        title = "New Artist Influences & Collaborations",
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  
@@ -574,7 +574,7 @@ Question3_a_Server <- function(input, output, session) {
         )
       ) %>%
       layout(
-        title = NULL,
+        title = "Influenced Music",
         margin = list(b = 80, t = 80),      
         xaxis = list(
           title = NA,  

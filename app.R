@@ -396,21 +396,17 @@ ui <- navbarPage(
                         mainPanel(
                           fluidRow(
                             column(width = 6,
-                                   h5("Music (Song/Album) Releases"),
                                    withSpinner(plotlyOutput("predictedStars_3a_1", height = "340px"))
                             ),
                             column(width = 6,
-                                   h5("Notable Music (Song/Album) Releases"),
                                    withSpinner(plotlyOutput("predictedStars_3a_2", height = "340px"))
                             )
                           ),
                           fluidRow(
                             column(width = 6,
-                                   h5("New Artist Influences & Collaborations"),
                                    withSpinner(plotlyOutput("predictedStars_3a_3", height = "340px"))
                             ),
                             column(width = 6,
-                                   h5("Influenced Music"),
                                    withSpinner(plotlyOutput("predictedStars_3a_4", height = "340px"))
                             )
                           ),

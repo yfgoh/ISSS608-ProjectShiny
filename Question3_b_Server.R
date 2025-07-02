@@ -465,7 +465,7 @@ Question3_b_Server <- function(input, output, session) {
       hoverinfo = "text",
       hovertext = ~paste0(
         "Artist: ", chosen_creator_1,
-        "<br>Influence Date: ", release_date,
+        "<br>Release Date: ", release_date,
         "<br>Cumulative Count: ", cumulative_count
       )
     ) %>%
@@ -481,7 +481,7 @@ Question3_b_Server <- function(input, output, session) {
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_2,
-          "<br>Influence Date: ", release_date,
+          "<br>Release Date: ", release_date,
           "<br>Cumulative Count: ", cumulative_count
         )
       ) %>%
@@ -497,7 +497,7 @@ Question3_b_Server <- function(input, output, session) {
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_3,
-          "<br>Influence Date: ", release_date,
+          "<br>Release Date: ", release_date,
           "<br>Cumulative Count: ", cumulative_count
         )
       ) %>%
@@ -606,7 +606,7 @@ Question3_b_Server <- function(input, output, session) {
       hoverinfo = "text",
       hovertext = ~paste0(
         "Artist: ", chosen_creator_1,
-        "<br>Influence Date: ", release_date,
+        "<br>Release Date: ", release_date,
         "<br>Cumulative Count: ", cumulative_count
       )
     ) %>%
@@ -622,7 +622,7 @@ Question3_b_Server <- function(input, output, session) {
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_2,
-          "<br>Influence Date: ", release_date,
+          "<br>Release Date: ", release_date,
           "<br>Cumulative Count: ", cumulative_count
         )
       ) %>%
@@ -638,7 +638,7 @@ Question3_b_Server <- function(input, output, session) {
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_3,
-          "<br>Influence Date: ", release_date,
+          "<br>Release Date: ", release_date,
           "<br>Cumulative Count: ", cumulative_count
         )
       ) %>%
