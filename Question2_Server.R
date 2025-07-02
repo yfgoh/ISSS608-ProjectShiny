@@ -509,7 +509,7 @@ Question2_Server <- function(input, output, session) {
       ) %>%
       select(source, target, value) %>%
       arrange(desc(value)) %>%
-      head(22)
+      head(15)
     
     # Step 4: Create nodes and links
     nodes <- data.frame(name = unique(c(filtered_stats$source, filtered_stats$target))) %>%
@@ -521,8 +521,7 @@ Question2_Server <- function(input, output, session) {
     target_names <- nodes$name[nodes$name != "Oceanus Folk"]
     n_targets <- length(target_names)
     
-    positions <- seq(0, 1, length.out = n_targets)
-    target_colours <- viridisLite::turbo(256)[round(positions * 255) + 1]
+    target_colours <- viridisLite::turbo(n = n_targets, begin = 0, end = 1)
     
     # Combine with fixed Oceanus Folk colour
     all_colours <- c("#2E3192", target_colours)
