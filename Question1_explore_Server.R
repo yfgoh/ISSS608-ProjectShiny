@@ -1,11 +1,20 @@
 Question1_explore_Server <- function(input, output, session) {
   debounced_genres_1 <- debounce(reactive(input$filter_genres_1), millis = 500)
   
+  filtered_artist_1 <- reactive({
+    creator_and_songs %>%
+      filter(song_genre %in% debounced_genres_1(),
+             creator_node_type %in% c("Person", "MusicalGroup")) %>%
+      pull(creator_name) %>%
+      unique() %>%
+      sort()
+  })
+  
   observe({
     updateSelectizeInput(session, "artist_1", choices = all_artists, selected = "Sailor Shift", server = TRUE)
     updateSelectizeInput(session, "artist_2", choices = all_artists, selected = "Sailor Shift", server = TRUE)
     updateSelectizeInput(session, "artist_3", choices = all_artists, selected = "Sailor Shift", server = TRUE)
-    updateSelectizeInput(session, "artist_4", choices = all_artists, selected = "Sailor Shift", server = TRUE)
+    updateSelectizeInput(session, "artist_4", choices = filtered_artist_1(), selected = "Sailor Shift", server = TRUE)
   })
   
   output$explore_1 <- renderGirafe({
@@ -409,6 +418,8 @@ Question1_explore_Server <- function(input, output, session) {
     selected_degree <- input$degree_sep
     include_inf <- input$include_infinite
     
+    max_degree <- max(distances[is.finite(distances)], na.rm = TRUE)
+    
     # Override checkbox if selected degree is below 13
     if (selected_degree < 13) {
       include_inf <- FALSE
@@ -452,7 +463,7 @@ Question1_explore_Server <- function(input, output, session) {
           data_id = name,
           colour = degree,
           shape = `Node Type`,
-          size = ifelse(node_name == "Sailor Shift", 3, 1),
+          size = ifelse(node_name == input$artist_4, 3, 1),
           tooltip = case_when(
             `Node Type` == "Album" ~ sprintf(
               "%s<br/>%s<br/>Notable: %s<br/>(%s)<br/>Degree: %s", node_name, genre, notable, release_date, degree
@@ -467,7 +478,7 @@ Question1_explore_Server <- function(input, output, session) {
       )+ 
       geom_node_text(
         aes(
-          label = ifelse(node_name == "Sailor Shift", "Sailor Shift", NA)
+          label = ifelse(node_name == input$artist_4, input$artist_4, NA)
         ),
         fontface = "bold",
         size = 3,
@@ -498,7 +509,7 @@ Question1_explore_Server <- function(input, output, session) {
       scale_color_gradientn(
         name = "Degree",
         colours = c("#2E3192", "#FFA757"),
-        values = scales::rescale(c(0, 13)),
+        values = scales::rescale(c(0, max_degree)),
         na.value = "grey50",
         limits = c(0, 13),
         breaks = 0:13

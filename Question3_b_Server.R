@@ -253,7 +253,7 @@ Question3_b_Server <- function(input, output, session) {
       mode = "lines+markers",
       name = chosen_creator_1,
       line = list(color = "#2E3192", width = 2),
-      marker = list(color = "red", size = 6),
+      marker = list(color = "#2E3192", size = 6),
       hoverinfo = "text",
       hovertext = ~paste0(
         "Artist: ", chosen_creator_1,
@@ -267,7 +267,7 @@ Question3_b_Server <- function(input, output, session) {
         y = ~composite_score,
         name = chosen_creator_2,
         line = list(color = "green", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "green", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_2,
@@ -281,7 +281,7 @@ Question3_b_Server <- function(input, output, session) {
         y = ~composite_score,
         name = chosen_creator_3,
         line = list(color = "purple", width = 2),
-        marker = list(color = "red", size = 6),
+        marker = list(color = "purple", size = 6),
         hoverinfo = "text",
         hovertext = ~paste0(
           "Artist: ", chosen_creator_3,

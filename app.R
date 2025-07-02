@@ -535,11 +535,11 @@ ui <- navbarPage(
              tabPanel("Impact on Chosen Genre's Collaborators",
                       sidebarLayout(
                         sidebarPanel(
-                          selectizeInput("artist_4", "Select Artist:",
-                                         choices = NULL, selected = NULL, multiple = FALSE),
                           selectInput("filter_genres_1", "Select Genre:",
                                       choices = all_genres,
                                       selected = "Oceanus Folk", multiple = FALSE),
+                          selectizeInput("artist_4", "Select Artist:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
                           sliderInput("degree_sep", "Degree of Separation:", min = 1, max = 13,
                                       value = 13, step = 1, sep = "", animate = animationOptions(interval = 3000, loop = FALSE)),
                           checkboxInput(
