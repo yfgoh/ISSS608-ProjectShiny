@@ -1,12 +1,12 @@
 Question1_explore_Server <- function(input, output, session) {
-  # Server-side reactive output for sailorWorkPlot
+  debounced_genres_1 <- debounce(reactive(input$filter_genres_1), millis = 500)
   
   observe({
     updateSelectizeInput(session, "artist_1", choices = all_artists, selected = "Sailor Shift", server = TRUE)
     updateSelectizeInput(session, "artist_2", choices = all_artists, selected = "Sailor Shift", server = TRUE)
     updateSelectizeInput(session, "artist_3", choices = all_artists, selected = "Sailor Shift", server = TRUE)
+    updateSelectizeInput(session, "artist_4", choices = all_artists, selected = "Sailor Shift", server = TRUE)
   })
-  
   
   output$explore_1 <- renderGirafe({
     # Step 0: Get name of 'Sailor Shift'
@@ -372,16 +372,16 @@ Question1_explore_Server <- function(input, output, session) {
     # Data Preparation
     # Step 1: Get the node of the sailor
     sailor_node <- creator_and_songs_and_influenced_by_creator %>%
-      filter(creator_name == "Sailor Shift") %>%
+      filter(creator_name == input$artist_4) %>%
       pull(creator_from) %>%
       unique()
     
     genre_creators = creator_and_songs_and_influences_and_creators_collaborate %>%
-      filter(song_genre == "Oceanus Folk") %>%
+      filter(song_genre == debounced_genres_1()) %>%
       pull(creator_from)
     
     genre_music = creator_and_songs_and_influences_and_creators_collaborate %>%
-      filter(song_genre == "Oceanus Folk") %>%
+      filter(song_genre == debounced_genres_1()) %>%
       pull(song_to)
     
     genre_all_nodes <- unique(c(genre_creators,

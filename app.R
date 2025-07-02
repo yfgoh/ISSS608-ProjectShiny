@@ -531,8 +531,31 @@ ui <- navbarPage(
                         )
                       )
              ),
-
-             
+             ######################## Question 1c ##############################
+             tabPanel("Impact on Chosen Genre's Collaborators",
+                      sidebarLayout(
+                        sidebarPanel(
+                          selectizeInput("artist_4", "Select Artist:",
+                                         choices = NULL, selected = NULL, multiple = FALSE),
+                          selectInput("filter_genres_1", "Select Genre:",
+                                      choices = all_genres,
+                                      selected = "Oceanus Folk", multiple = FALSE),
+                          sliderInput("degree_sep", "Degree of Separation:", min = 1, max = 13,
+                                      value = 13, step = 1, sep = "", animate = animationOptions(interval = 3000, loop = FALSE)),
+                          checkboxInput(
+                            inputId = "include_infinite",
+                            label = "Nodes that are unconnected to the Selected Artist",
+                            value = TRUE
+                          ),
+                          helpText("Adjust the degree of separation to uncover how artists are interconnected across the network"),
+                        ),
+                        mainPanel(
+                          br(),
+                          h5("How has the Selected Artist influenced collaborators of the Selected Genre's community?"),
+                          withSpinner(girafeOutput("explore_4", width = "100%", height = "600px"))
+                        )
+                      )
+             )
            )
   )
 )
