@@ -558,18 +558,6 @@ ui <- navbarPage(
   
   server <- function(input, output, session) {
     
-    output$influenceTree <- renderCollapsibleTree({
-      collapsibleTree(
-        df = data.frame(
-          Genre = "Oceanus Folk", 
-          Mentor = "Ivy Echoes", 
-          Artist = "Sailor Shift"
-        ),
-        hierarchy = c("Genre", "Mentor", "Artist"),
-        root = "Oceanus Folk"
-      )
-    })
-    
     ######################################## Question 1 ###################################
     
     Question1_Server(input, output, session)  
