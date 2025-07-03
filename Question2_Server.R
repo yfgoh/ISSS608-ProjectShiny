@@ -588,14 +588,23 @@ Question2_Server <- function(input, output, session) {
   })
   
   output$artistInfluenceTable <- DT::renderDataTable({
-    selected <- input$selected_artist
+    creator_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
+      distinct(creator_name, creator_node_type, song_to, song_genre, influenced_by, influenced_by_genre, influenced_by_creator, notable) %>%
+      group_by(creator_name, creator_node_type) %>%
+      summarize(
+        total_music = n_distinct(song_to),
+        notable_hits = n_distinct(song_to[notable == TRUE]),
+        oceanus_music = n_distinct(song_to[song_genre == debounced_genres_2_c()]),
+        oceanus_influenced_by = n_distinct(na.omit(influenced_by[influenced_by_genre == debounced_genres_2_c() & creator_name != influenced_by_creator])),
+        total_oceanus_influence = oceanus_music + oceanus_influenced_by
+      ) %>%
+      arrange(desc(total_oceanus_influence)) %>%
+      filter(creator_node_type == "Person", notable_hits > 10) %>%
+      select(-creator_node_type)
     
-    table_data <- creator_influenced_by_stats
-    if (!is.null(selected) && selected != "All") {
-      table_data <- table_data %>% filter(creator_name == selected)
-    }
-    
-    table_data %>%
+    creator_influenced_by_stats %>%
+      filter(total_oceanus_influence > 0) %>%
+      arrange(desc(total_oceanus_influence)) %>%
       rename(
         `Artist` = creator_name,
         `Total Music` = total_music,
@@ -603,13 +612,8 @@ Question2_Server <- function(input, output, session) {
         `No. of Oceanus Folk Music` = oceanus_music,
         `Oceanus Folk Influence` = oceanus_influenced_by,
         `Oceanus Folk Music & Influence` = total_oceanus_influence
-      ) %>%
-      arrange(desc(`Oceanus Folk Music & Influence`))
-  }, options = list(
-    pageLength = 10,
-    scrollX = TRUE,
-    autoWidth = TRUE
-  ), rownames = FALSE)
+      )
+  })
   
   
 ###################### 2d 
