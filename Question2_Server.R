@@ -552,8 +552,37 @@ Question2_Server <- function(input, output, session) {
     
     target_colours <- viridisLite::turbo(n = n_targets, begin = 0, end = 1)
     
+    genre_palette <- c(
+      "Oceanus Folk"           = "#2E3192",  # blue
+      "Indie Folk"             = "#ff7f0e",  # orange
+      "Synthwave"              = "#2ca02c",  # green
+      "Dream Pop"              = "#d62728",  # red
+      "Doom Metal"             = "#9467bd",  # purple
+      "Psychedelic Rock"       = "#8c564b",  # brown
+      "Alternative Rock"       = "#e377c2",  # pink
+      "Indie Rock"             = "#7f7f7f",  # gray
+      "Desert Rock"            = "#bcbd22",  # yellow-green
+      "Americana"              = "#17becf",  # cyan
+      "Space Rock"             = "#ff9896",  # coral
+      "Synthpop"               = "#98df8a",  # mint green
+      "Blues Rock"             = "#aec7e8",  # light blue
+      "Symphonic Metal"        = "#c5b0d5",  # lavender
+      "Avant-Garde Folk"       = "#f7b6d2",  # rose
+      "Post-Apocalyptic Folk"  = "#c49c94",  # warm gray
+      "Celtic Folk"            = "#dbdb8d",  # olive
+      "Emo/Pop Punk"           = "#9edae5",  # pale cyan
+      "Indie Pop"              = "#ffbb78",  # soft orange
+      "Jazz Surf Rock"         = "#c7c7c7",  # light gray
+      "Lo-Fi Electronica"      = "#bc80bd",  # dusty violet
+      "Acoustic Folk"          = "#1f77b4",  # deep blue
+      "Darkwave"               = "#393b79",  # dark indigo
+      "Sea Shanties"           = "#8dd3c7",  # aqua
+      "Southern Gothic Rock"   = "#fb8072",  # salmon
+      "Speed Metal"            = "#ffff33"   # bright yellow
+    )
+    
     # Combine with fixed Oceanus Folk colour
-    all_colours <- c("#2E3192", target_colours)
+    all_colours <- c(genre_palette[[debounced_genres_2_c()]], target_colours)
     
     # Create D3-compatible colour scale
     colour_scale <- JS(sprintf(
