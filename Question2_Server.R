@@ -324,7 +324,8 @@ Question2_Server <- function(input, output, session) {
         perc_oceanus = round(oceanus_influences / total_influences * 100, 1),
         no_influences = sum(is.na(influence_genre)),
       ) %>%
-      arrange(desc(perc_oceanus))
+      arrange(desc(perc_oceanus)) %>%
+      filter(oceanus_influences > 0)
     
     outward_links <- genre_influence_stats %>%
       filter(oceanus_influences > 0) %>%
@@ -429,7 +430,8 @@ Question2_Server <- function(input, output, session) {
         perc_oceanus = round(oceanus_influences / total_influences * 100, 1),
         no_influences = sum(is.na(influence_genre)),
       ) %>%
-      arrange(desc(perc_oceanus))
+      arrange(desc(perc_oceanus)) %>%
+      filter(oceanus_influences > 0)
     
     # Outward influence stats
     outward <- genre_influence_stats %>%
