@@ -415,7 +415,6 @@ Question2_Server <- function(input, output, session) {
     )
   })
   
-  
   output$combinedGenreInfluenceTable <- DT::renderDataTable({
     
     genre_influence_stats <- creator_and_songs_and_influences_and_creators_collaborate %>%
@@ -510,36 +509,29 @@ Question2_Server <- function(input, output, session) {
   
   ###############2c##############################
   
-  # Outward Influence on other Artists
-  
-  creator_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
-    distinct(creator_name, creator_node_type, song_to, song_genre, influenced_by, influenced_by_genre, influenced_by_creator, notable) %>%
-    group_by(creator_name, creator_node_type) %>%
-    summarize(
-      total_music = n_distinct(song_to),
-      notable_hits = n_distinct(song_to[notable == TRUE]),
-      oceanus_music = n_distinct(song_to[song_genre == "Oceanus Folk"]),
-      oceanus_influenced_by = n_distinct(na.omit(influenced_by[influenced_by_genre == "Oceanus Folk" & creator_name != influenced_by_creator])),
-      total_oceanus_influence = oceanus_music + oceanus_influenced_by
-    ) %>%
-    arrange(desc(total_oceanus_influence)) %>%
-    filter(creator_node_type == "Person", notable_hits > 10) %>%
-    select(-creator_node_type)
+  debounced_genres_2_c <- debounce(reactive(input$filter_genres_2_c), millis = 500)
   
   output$artistSankey <- renderSankeyNetwork({
-    # Step 1: Start from full data
-    filtered_stats <- creator_influenced_by_stats
+    # Outward Influence on other Artists
     
-    # Step 2: Filter by selected artist (unless "All")
-    if (!is.null(input$selected_artist) && input$selected_artist != "All") {
-      filtered_stats <- filtered_stats %>%
-        filter(creator_name == input$selected_artist)
-    }
+    creator_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
+      distinct(creator_name, creator_node_type, song_to, song_genre, influenced_by, influenced_by_genre, influenced_by_creator, notable) %>%
+      group_by(creator_name, creator_node_type) %>%
+      summarize(
+        total_music = n_distinct(song_to),
+        notable_hits = n_distinct(song_to[notable == TRUE]),
+        oceanus_music = n_distinct(song_to[song_genre == debounced_genres_2_c()]),
+        oceanus_influenced_by = n_distinct(na.omit(influenced_by[influenced_by_genre == debounced_genres_2_c() & creator_name != influenced_by_creator])),
+        total_oceanus_influence = oceanus_music + oceanus_influenced_by
+      ) %>%
+      arrange(desc(total_oceanus_influence)) %>%
+      filter(creator_node_type == "Person", notable_hits > 10) %>%
+      select(-creator_node_type)
     
     # Step 3: Structure links
-    filtered_stats <- filtered_stats %>%
+    sankey_df  <- creator_influenced_by_stats %>%
       mutate(
-        source = "Oceanus Folk",
+        source = debounced_genres_2_c(),
         raw_target = creator_name,
         target = paste0(raw_target, " (", total_oceanus_influence, ")"),
         value = total_oceanus_influence
@@ -549,13 +541,13 @@ Question2_Server <- function(input, output, session) {
       head(15)
     
     # Step 4: Create nodes and links
-    nodes <- data.frame(name = unique(c(filtered_stats$source, filtered_stats$target))) %>%
+    nodes <- data.frame(name = unique(c(sankey_df$source, sankey_df$target))) %>%
       mutate(
-        group = ifelse(name == "Oceanus Folk", "Oceanus Folk", name)
+        group = ifelse(name == debounced_genres_2_c(), debounced_genres_2_c(), name)
       )
     
     # Generate up to N distinct target colours
-    target_names <- nodes$name[nodes$name != "Oceanus Folk"]
+    target_names <- nodes$name[nodes$name != debounced_genres_2_c()]
     n_targets <- length(target_names)
     
     target_colours <- viridisLite::turbo(n = n_targets, begin = 0, end = 1)
@@ -566,12 +558,12 @@ Question2_Server <- function(input, output, session) {
     # Create D3-compatible colour scale
     colour_scale <- JS(sprintf(
       'd3.scaleOrdinal().domain(%s).range(%s)',
-      jsonlite::toJSON(c("Oceanus Folk", target_names), auto_unbox = TRUE),
+      jsonlite::toJSON(c(debounced_genres_2_c(), target_names), auto_unbox = TRUE),
       jsonlite::toJSON(all_colours, auto_unbox = TRUE)
     ))
     
     
-    links <- filtered_stats %>%
+    links <- sankey_df %>%
       mutate(
         source = match(source, nodes$name) - 1,
         target = match(target, nodes$name) - 1

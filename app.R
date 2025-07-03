@@ -262,14 +262,10 @@ ui <- navbarPage(
         "Outward Influence on other Artists",
         sidebarLayout(
           sidebarPanel(
-            selectInput(
-              "selected_artist",
-              "Select Artist:",
-              choices = c("All", sort(unique(creator_influenced_by_stats$creator_name))),
-              selected = "All",
-              width = "100%"
-            ),
-            helpText("Select an artist to view how much they have been influenced by Oceanus Folk.")
+            selectInput("filter_genres_2_c", "Select Genre:",
+                        choices = all_genres,
+                        selected = "Oceanus Folk", multiple = FALSE),
+            helpText("Select an artist to view how much they have been influenced by the Selected Genre.")
           ),
           
           mainPanel(
