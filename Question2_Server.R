@@ -427,7 +427,20 @@ Question2_Server <- function(input, output, session) {
   
   
   output$combinedGenreInfluenceTable <- DT::renderDataTable({
-    selected <- input$selected_genre
+    
+    genre_influence_stats <- creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(infuence_music_collaborate != song_to) %>%
+      distinct(song_to, song_genre, infuence_music_collaborate, influence_genre, `Edge Colour`) %>%
+      group_by(song_genre) %>%
+      summarize(
+        total_music = n_distinct(song_to),
+        total_influences = n_distinct(na.omit(infuence_music_collaborate[!is.na(influence_genre)])),
+        oceanus_influences = n_distinct(na.omit(infuence_music_collaborate[influence_genre == debounced_genres_2_b()])),
+        other_influences = total_influences - oceanus_influences,
+        perc_oceanus = round(oceanus_influences / total_influences * 100, 1),
+        no_influences = sum(is.na(influence_genre)),
+      ) %>%
+      arrange(desc(perc_oceanus))
     
     # Outward influence stats
     outward <- genre_influence_stats %>%
@@ -436,6 +449,20 @@ Question2_Server <- function(input, output, session) {
         Oceanus_Influence = oceanus_influences,
         Perc_Oceanus = perc_oceanus
       )
+    
+    genre_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
+      filter(song_genre == debounced_genres_2_b()) %>%
+      distinct(song_to, influenced_by, influenced_by_genre) %>%
+      group_by(influenced_by_genre) %>%
+      summarize(
+        influenced_by = n_distinct(na.omit(influenced_by)),
+        .groups = "drop"
+      ) %>%
+      left_join(genre_total_counts, by = c("influenced_by_genre" = "song_genre")) %>%
+      mutate(
+        Percentage_oceanus_influence = round(influenced_by / total_music * 100, 1)
+      ) %>%
+      arrange(desc(influenced_by))
     
     # Inward influence stats
     inward <- genre_influenced_by_stats %>%
@@ -448,11 +475,6 @@ Question2_Server <- function(input, output, session) {
     
     # Join
     combined <- full_join(inward, outward, by = "Genre")
-    
-    # Filter if genre is selected
-    if (!is.null(selected) && selected != "All") {
-      combined <- combined %>% filter(Genre == selected)
-    }
     
     # Final column order: Inward first
     combined <- combined %>%
