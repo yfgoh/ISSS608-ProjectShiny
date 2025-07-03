@@ -128,7 +128,12 @@ Question1_explore_Server <- function(input, output, session) {
           "Emo/Pop Punk"           = "#9edae5",  # pale cyan
           "Indie Pop"              = "#ffbb78",  # soft orange
           "Jazz Surf Rock"         = "#c7c7c7",  # light gray
-          "Lo-Fi Electronica"      = "#bc80bd"   # dusty violet
+          "Lo-Fi Electronica"      = "#bc80bd",  # dusty violet
+          "Acoustic Folk"          = "#1f77b4",  # deep blue
+          "Darkwave"               = "#393b79",  # dark indigo
+          "Sea Shanties"           = "#8dd3c7",  # aqua
+          "Southern Gothic Rock"   = "#fb8072",  # salmon
+          "Speed Metal"            = "#ffff33"   # bright yellow
         )
       ) +
       theme_graph(base_family = "sans") +
@@ -279,7 +284,12 @@ Question1_explore_Server <- function(input, output, session) {
           "Emo/Pop Punk"           = "#9edae5",  # pale cyan
           "Indie Pop"              = "#ffbb78",  # soft orange
           "Jazz Surf Rock"         = "#c7c7c7",  # light gray
-          "Lo-Fi Electronica"      = "#bc80bd"   # dusty violet
+          "Lo-Fi Electronica"      = "#bc80bd",  # dusty violet
+          "Acoustic Folk"          = "#1f77b4",  # deep blue
+          "Darkwave"               = "#393b79",  # dark indigo
+          "Sea Shanties"           = "#8dd3c7",  # aqua
+          "Southern Gothic Rock"   = "#fb8072",  # salmon
+          "Speed Metal"            = "#ffff33"   # bright yellow
         )
       ) +
       theme_graph(base_family = "sans") +
@@ -435,7 +445,12 @@ Question1_explore_Server <- function(input, output, session) {
           "Emo/Pop Punk"           = "#9edae5",  # pale cyan
           "Indie Pop"              = "#ffbb78",  # soft orange
           "Jazz Surf Rock"         = "#c7c7c7",  # light gray
-          "Lo-Fi Electronica"      = "#bc80bd"   # dusty violet
+          "Lo-Fi Electronica"      = "#bc80bd",  # dusty violet
+          "Acoustic Folk"          = "#1f77b4",  # deep blue
+          "Darkwave"               = "#393b79",  # dark indigo
+          "Sea Shanties"           = "#8dd3c7",  # aqua
+          "Southern Gothic Rock"   = "#fb8072",  # salmon
+          "Speed Metal"            = "#ffff33"   # bright yellow
         )
       ) +
       theme_graph(base_family = "sans") +
