@@ -543,14 +543,8 @@ Question2_Server <- function(input, output, session) {
     # Step 4: Create nodes and links
     nodes <- data.frame(name = unique(c(sankey_df$source, sankey_df$target))) %>%
       mutate(
-        group = ifelse(name == debounced_genres_2_c(), debounced_genres_2_c(), name)
+        group = ifelse(name == debounced_genres_2_c(), "source", "target")
       )
-    
-    # Generate up to N distinct target colours
-    target_names <- nodes$name[nodes$name != debounced_genres_2_c()]
-    n_targets <- length(target_names)
-    
-    target_colours <- viridisLite::turbo(n = n_targets, begin = 0, end = 1)
     
     genre_palette <- c(
       "Oceanus Folk"           = "#2E3192",  # blue
@@ -581,16 +575,16 @@ Question2_Server <- function(input, output, session) {
       "Speed Metal"            = "#ffff33"   # bright yellow
     )
     
-    # Combine with fixed Oceanus Folk colour
-    all_colours <- c(genre_palette[[debounced_genres_2_c()]], target_colours)
+    # Get the genre color for the source node
+    source_color <- genre_palette[[debounced_genres_2_c()]]
     
-    # Create D3-compatible colour scale
+    # Create color scale - source gets its genre color, all targets get grey
     colour_scale <- JS(sprintf(
-      'd3.scaleOrdinal().domain(%s).range(%s)',
-      jsonlite::toJSON(c(debounced_genres_2_c(), target_names), auto_unbox = TRUE),
-      jsonlite::toJSON(all_colours, auto_unbox = TRUE)
+      'd3.scaleOrdinal()
+    .domain(["source", "target"])
+    .range(["%s", "#808080"])',  # #808080 is grey
+      source_color
     ))
-    
     
     links <- sankey_df %>%
       mutate(
