@@ -480,10 +480,10 @@ Question2_Server <- function(input, output, session) {
     colnames(combined) <- c(
       "Genre",
       "Total<br>Music",
-      "Influencing<br>Oceanus",
-      "%<br>Oceanus<br>(Inward)",
-      "Oceanus<br>Influenced",
-      "%<br>Oceanus<br>(Outward)"
+      glue("Influencing<br>{debounced_genres_2_b()}"),
+      glue("%<br>{debounced_genres_2_b()}<br>(Inward)"),
+      glue("{debounced_genres_2_b()}<br>Influenced"),
+      glue("%<br>{debounced_genres_2_b()}<br>(Outward)")
     )
     
     DT::datatable(
