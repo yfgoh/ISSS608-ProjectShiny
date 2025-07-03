@@ -602,17 +602,19 @@ Question2_Server <- function(input, output, session) {
       filter(creator_node_type == "Person", notable_hits > 10) %>%
       select(-creator_node_type)
     
+    col_labels <- c(
+      "creator_name"           = "Artist",
+      "total_music"            = "Total Music",
+      "notable_hits"           = "Notable Hits",
+      "oceanus_music"          = glue("No. of {debounced_genres_2_c()} Music"),
+      "oceanus_influenced_by"  = glue("{debounced_genres_2_c()} Influence"),
+      "total_oceanus_influence"= glue("{debounced_genres_2_c()} Music & Influence")
+    )
+    
     creator_influenced_by_stats %>%
       filter(total_oceanus_influence > 0) %>%
       arrange(desc(total_oceanus_influence)) %>%
-      rename(
-        `Artist` = creator_name,
-        `Total Music` = total_music,
-        `Notable Hits` = notable_hits,
-        `No. of Oceanus Folk Music` = oceanus_music,
-        `Oceanus Folk Influence` = oceanus_influenced_by,
-        `Oceanus Folk Music & Influence` = total_oceanus_influence
-      )
+      rename(!!!setNames(names(col_labels), col_labels))
   })
   
   
