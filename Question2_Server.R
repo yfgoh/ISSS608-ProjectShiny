@@ -288,7 +288,7 @@ Question2_Server <- function(input, output, session) {
   output$genreSankey <- renderSankeyNetwork({
     
     genre_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
-      filter(song_genre == debounced_genres_2_b()) %>%
+      filter(song_genre == debounced_genres_2_b(), !is.na(influenced_by_genre)) %>%
       distinct(song_to, influenced_by, influenced_by_genre) %>%
       group_by(influenced_by_genre) %>%
       summarize(
@@ -440,7 +440,7 @@ Question2_Server <- function(input, output, session) {
       )
     
     genre_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
-      filter(song_genre == debounced_genres_2_b()) %>%
+      filter(song_genre == debounced_genres_2_b(), !is.na(influenced_by_genre)) %>%
       distinct(song_to, influenced_by, influenced_by_genre) %>%
       group_by(influenced_by_genre) %>%
       summarize(
