@@ -480,7 +480,7 @@ ui <- navbarPage(
                         ),
                         mainPanel(
                           br(),
-                          h6("Hover your mouse over the nodes below to explore the Selected Artist's work"),
+                          uiOutput("dynamic_title_1"),
                           withSpinner(girafeOutput("explore_1", width = "100%", height = "600px"))
                         )
                       )
@@ -500,7 +500,7 @@ ui <- navbarPage(
                         ),
                         mainPanel(
                           br(),
-                          h5("Who has the Selected Artist been most influenced by over time?"),
+                          uiOutput("dynamic_title_1a"),
                           h6("The visualisation shows all Persons and Musical Groups that have influenced the Selected Artist's work. Use the interactive visualization to explore these influence relationships in more detail"),
                           withSpinner(girafeOutput("explore_2", width = "100%", height = "600px"))
                         )
@@ -521,7 +521,7 @@ ui <- navbarPage(
                         ),
                         mainPanel(
                           br(),
-                          h5("Who has the Selected Artist collaborated with and directly or indirectly influenced?"),
+                          uiOutput("dynamic_title_1b"),
                           h6("Hover your mouse over the nodes below to learn more about the collaborators"),
                           withSpinner(girafeOutput("explore_3", width = "100%", height = "600px"))
                         )
@@ -546,7 +546,7 @@ ui <- navbarPage(
                         ),
                         mainPanel(
                           br(),
-                          h5("How has the Selected Artist influenced collaborators of the Selected Genre's community?"),
+                          uiOutput("dynamic_title_1c"),
                           withSpinner(girafeOutput("explore_4", width = "100%", height = "600px"))
                         )
                       )

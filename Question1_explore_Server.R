@@ -17,6 +17,26 @@ Question1_explore_Server <- function(input, output, session) {
     updateSelectizeInput(session, "artist_4", choices = filtered_artist_1(), selected = "Sailor Shift", server = TRUE)
   })
   
+  output$dynamic_title_1 <- renderUI({
+    req(input$artist_1)  # Ensure a genre is selected
+    h5(paste0("Hover your mouse over the nodes below to explore ", input$artist_1, "'s work"))
+  })
+  
+  output$dynamic_title_1a <- renderUI({
+    req(input$artist_2)  # Ensure a genre is selected
+    h5(paste0("Who has ", input$artist_2, " been most influenced by over time?"))
+  })
+  
+  output$dynamic_title_1b <- renderUI({
+    req(input$artist_3)  # Ensure a genre is selected
+    h5(paste0("Who has ", input$artist_3, " collaborated with and directly or indirectly influenced?"))
+  })
+
+  output$dynamic_title_1c <- renderUI({
+    req(input$artist_4)  # Ensure a genre is selected
+    h5(paste0("How has ", input$artist_4, " influenced collaborators of the ", debounced_genres_1() ," community?"))
+  })
+    
   output$explore_1 <- renderGirafe({
     # Step 0: Get name of 'Sailor Shift'
     sailor_vertex_name <- mc1_nodes_clean %>%
