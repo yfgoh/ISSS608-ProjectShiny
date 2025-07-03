@@ -211,14 +211,10 @@ ui <- navbarPage(
         title = "Inward and Outward Influence on other Genres",
         sidebarLayout(
           sidebarPanel(
-            selectInput(
-              "selected_genre",
-              "Select Genre:",
-              choices = c("All", sort(unique(genre_influence_stats$song_genre))),
-              selected = "All",
-              width = "100%"
-            ),
-            helpText("Select a genre to view how Oceanus Folk has influenced it.")
+            selectInput("filter_genres_2_b", "Select Genre:",
+                        choices = all_genres,
+                        selected = "Oceanus Folk", multiple = FALSE),
+            helpText("Select a Genre to view its Inward and Outward Influence.")
           ),
           
           mainPanel(

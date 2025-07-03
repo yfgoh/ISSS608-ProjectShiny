@@ -283,34 +283,53 @@ Question2_Server <- function(input, output, session) {
 
   ######################################### 2b ###################################
   
+  debounced_genres_2_b <- debounce(reactive(input$filter_genres_2_b), millis = 500)
+  
   output$genreSankey <- renderSankeyNetwork({
-    selected <- input$selected_genre
+    
+    genre_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
+      filter(song_genre == debounced_genres_2_b()) %>%
+      distinct(song_to, influenced_by, influenced_by_genre) %>%
+      group_by(influenced_by_genre) %>%
+      summarize(
+        influenced_by = n_distinct(na.omit(influenced_by)),
+        .groups = "drop"
+      ) %>%
+      left_join(genre_total_counts, by = c("influenced_by_genre" = "song_genre")) %>%
+      mutate(
+        Percentage_oceanus_influence = round(influenced_by / total_music * 100, 1)
+      ) %>%
+      arrange(desc(influenced_by))
     
     # Step 1: Filter and format links
     # Step 1: Filter and format links based on selected genre
     inward_links <- genre_influenced_by_stats %>%
       filter(influenced_by > 0) %>%
-      {
-        if (!is.null(selected) && selected != "All") {
-          filter(., influenced_by_genre == selected)
-        } else .
-      } %>%
       transmute(
         source = paste0(influenced_by_genre, " [In] (", influenced_by, ")"),
-        target = "Oceanus Folk",
+        target = debounced_genres_2_b(),
         value = influenced_by,
         genre  = influenced_by_genre
       )
     
+    genre_influence_stats <- creator_and_songs_and_influences_and_creators_collaborate %>%
+      filter(infuence_music_collaborate != song_to) %>%
+      distinct(song_to, song_genre, infuence_music_collaborate, influence_genre, `Edge Colour`) %>%
+      group_by(song_genre) %>%
+      summarize(
+        total_music = n_distinct(song_to),
+        total_influences = n_distinct(na.omit(infuence_music_collaborate[!is.na(influence_genre)])),
+        oceanus_influences = n_distinct(na.omit(infuence_music_collaborate[influence_genre == debounced_genres_2_b()])),
+        other_influences = total_influences - oceanus_influences,
+        perc_oceanus = round(oceanus_influences / total_influences * 100, 1),
+        no_influences = sum(is.na(influence_genre)),
+      ) %>%
+      arrange(desc(perc_oceanus))
+    
     outward_links <- genre_influence_stats %>%
       filter(oceanus_influences > 0) %>%
-      {
-        if (!is.null(selected) && selected != "All") {
-          filter(., song_genre == selected)
-        } else .
-      } %>%
       transmute(
-        source = "Oceanus Folk",
+        source = debounced_genres_2_b(),
         target = paste0(song_genre, " [Out] (", oceanus_influences, ")"),
         value = oceanus_influences,
         genre  = song_genre
@@ -344,33 +363,33 @@ Question2_Server <- function(input, output, session) {
     
     # Step 6: Define genre color palette
     genre_palette <- c(
-      "Oceanus Folk"           = "#2E3192",  # blue
-      "Indie Folk"             = "#ff7f0e",  # orange
-      "Synthwave"              = "#2ca02c",  # green
-      "Dream Pop"              = "#d62728",  # red
-      "Doom Metal"             = "#9467bd",  # purple
-      "Psychedelic Rock"       = "#8c564b",  # brown
-      "Alternative Rock"       = "#e377c2",  # pink
-      "Indie Rock"             = "#7f7f7f",  # gray
-      "Desert Rock"            = "#bcbd22",  # yellow-green
-      "Americana"              = "#17becf",  # cyan
-      "Space Rock"             = "#ff9896",  # coral
-      "Synthpop"               = "#98df8a",  # mint green
-      "Blues Rock"             = "#aec7e8",  # light blue
-      "Symphonic Metal"        = "#c5b0d5",  # lavender
-      "Avant-Garde Folk"       = "#f7b6d2",  # rose
-      "Post-Apocalyptic Folk"  = "#c49c94",  # warm gray
-      "Celtic Folk"            = "#dbdb8d",  # olive
-      "Emo/Pop Punk"           = "#9edae5",  # pale cyan
-      "Indie Pop"              = "#ffbb78",  # soft orange
-      "Jazz Surf Rock"         = "#c7c7c7",  # light gray
-      "Lo-Fi Electronica"      = "#bc80bd",  # dusty violet
-      "Acoustic Folk"          = "#1f77b4",  # deep blue
-      "Darkwave"               = "#393b79",  # dark indigo
-      "Sea Shanties"           = "#8dd3c7",  # aqua
-      "Southern Gothic Rock"   = "#fb8072",  # salmon
-      "Speed Metal"            = "#ffff33"   # bright yellow
-    )
+        "Oceanus Folk"           = "#2E3192",  # blue
+        "Indie Folk"             = "#ff7f0e",  # orange
+        "Synthwave"              = "#2ca02c",  # green
+        "Dream Pop"              = "#d62728",  # red
+        "Doom Metal"             = "#9467bd",  # purple
+        "Psychedelic Rock"       = "#8c564b",  # brown
+        "Alternative Rock"       = "#e377c2",  # pink
+        "Indie Rock"             = "#7f7f7f",  # gray
+        "Desert Rock"            = "#bcbd22",  # yellow-green
+        "Americana"              = "#17becf",  # cyan
+        "Space Rock"             = "#ff9896",  # coral
+        "Synthpop"               = "#98df8a",  # mint green
+        "Blues Rock"             = "#aec7e8",  # light blue
+        "Symphonic Metal"        = "#c5b0d5",  # lavender
+        "Avant-Garde Folk"       = "#f7b6d2",  # rose
+        "Post-Apocalyptic Folk"  = "#c49c94",  # warm gray
+        "Celtic Folk"            = "#dbdb8d",  # olive
+        "Emo/Pop Punk"           = "#9edae5",  # pale cyan
+        "Indie Pop"              = "#ffbb78",  # soft orange
+        "Jazz Surf Rock"         = "#c7c7c7",  # light gray
+        "Lo-Fi Electronica"      = "#bc80bd",  # dusty violet
+        "Acoustic Folk"          = "#1f77b4",  # deep blue
+        "Darkwave"               = "#393b79",  # dark indigo
+        "Sea Shanties"           = "#8dd3c7",  # aqua
+        "Southern Gothic Rock"   = "#fb8072",  # salmon
+        "Speed Metal"            = "#ffff33"   # bright yellow
+      )
     
     genre_colors <- genre_palette[unique(nodes_df$group)]
     colour_scale <- sprintf(
