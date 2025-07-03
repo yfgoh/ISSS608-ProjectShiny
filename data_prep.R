@@ -878,26 +878,6 @@ plot_ly(combined_df,
 
 ##############################Question2b#########################################################
 
-genre_influence_stats <- creator_and_songs_and_influences_and_creators_collaborate %>%
-  filter(infuence_music_collaborate != song_to) %>%
-  distinct(song_to, song_genre, infuence_music_collaborate, influence_genre, `Edge Colour`) %>%
-  group_by(song_genre) %>%
-  summarize(
-    total_music = n_distinct(song_to),
-    total_influences = n_distinct(na.omit(infuence_music_collaborate[!is.na(influence_genre)])),
-    oceanus_influences = n_distinct(na.omit(infuence_music_collaborate[influence_genre == "Oceanus Folk"])),
-    other_influences = total_influences - oceanus_influences,
-    perc_oceanus = round(oceanus_influences / total_influences * 100, 1),
-    no_influences = sum(is.na(influence_genre)),
-  ) %>%
-  arrange(desc(perc_oceanus))
-
-genre_influence_stats %>%
-  kable(caption = "Genre Ranked by Oceanus Influence") %>%
-  kable_styling("striped", full_width = F) %>%
-  scroll_box(height = "300px")
-
-
 
 ###################2c#########################################################
 
@@ -932,86 +912,6 @@ creator_influenced_by_stats %>%
 
 ###########Question2tab4#########################################################
 
-# Step 1: Compute total number of songs for each genre
-genre_total_counts <- creator_and_songs_and_influenced_by_creator %>%
-  distinct(song_to, song_genre) %>%
-  count(song_genre, name = "total_music")
-
-# Step 2: Compute how many songs/genre where influencing Oceanus Folk
-genre_influenced_by_stats <- creator_and_songs_and_influenced_by_creator %>%
-  filter(song_genre == "Oceanus Folk") %>%
-  distinct(song_to, influenced_by, influenced_by_genre) %>%
-  group_by(influenced_by_genre) %>%
-  summarize(
-    influenced_by = n_distinct(na.omit(influenced_by)),
-    .groups = "drop"
-  ) %>%
-  left_join(genre_total_counts, by = c("influenced_by_genre" = "song_genre")) %>%
-  mutate(
-    Percentage_oceanus_influence = round(influenced_by / total_music * 100, 1)
-  ) %>%
-  arrange(desc(influenced_by))
-
-# Step 3: Reordered columns
-genre_influenced_by_stats %>%
-  head(10) %>%
-  rename(
-    `Genre` = influenced_by_genre,
-    `Total Music` = total_music,
-    `Genre influencing Oceanus Folk` = influenced_by
-  ) %>%
-  select(`Genre`, `Total Music`, `Genre influencing Oceanus Folk`, Percentage_oceanus_influence) %>%
-  kable(caption = "Ranking of Music Genre Influence on Oceanus Folk") %>%
-  kable_styling("striped", full_width = FALSE) %>%
-  scroll_box(height = "200px")
-
-# Step 1: Prepare data — reverse flow direction: Genre → Oceanus Folk
-sankey_df <- genre_influenced_by_stats %>%
-  mutate(
-    raw_source = influenced_by_genre,
-    target = "Oceanus Folk",
-    value = influenced_by,
-    source = paste0(raw_source, " (", value, ")")
-  ) %>%
-  select(source, target, value) %>%
-  arrange(desc(value)) %>%
-  head(22)  # Top 22 genres influencing Oceanus Folk
-
-# Step 2: Create node list
-nodes <- data.frame(name = unique(c(sankey_df$source, sankey_df$target)))
-
-# Step 3: Create link list with indices
-links <- sankey_df %>%
-  mutate(
-    source = match(source, nodes$name) - 1,
-    target = match(target, nodes$name) - 1
-  )
-
-# Step 4: Add tooltip group (Genre → Oceanus Folk)
-links$group <- paste0(sankey_df$source, " → ", sankey_df$target, ": ", sankey_df$value)
-
-# Step 5: Render Sankey
-p <- sankeyNetwork(
-  Links = links,
-  Nodes = nodes,
-  Source = "source",
-  Target = "target",
-  Value = "value",
-  NodeID = "name",
-  fontSize = 13,
-  nodeWidth = 30,
-  sinksRight = FALSE  # ← Flip layout: sources on right if needed
-)
-
-# Step 6: Add tooltips
-onRender(p, '
-  function(el, x) {
-    d3.select(el)
-      .selectAll(".link")
-      .append("title")
-      .text(function(d) { return d.group; });
-  }
-')
 #####################################################Tab 5#########################################################
 
 # Step 1: Filter influence edges
