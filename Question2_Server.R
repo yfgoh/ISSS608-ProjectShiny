@@ -412,17 +412,6 @@ Question2_Server <- function(input, output, session) {
       sinksRight = TRUE,
       colourScale = JS(colour_scale)
     )
-    
-    # Step 8: Add hover tooltip
-    onRender(p, '
-    function(el, x) {
-      d3.select(el).selectAll(".link")
-        .append("title")
-        .text(function(d) {
-          return d.source.name + " → " + d.target.name + ": " + d.value;
-        });
-    }
-  ')
   })
   
   
@@ -627,9 +616,6 @@ Question2_Server <- function(input, output, session) {
     scrollX = TRUE,
     autoWidth = TRUE
   ), rownames = FALSE)
-  
-  
-  
   
   
 ###################### 2d 
