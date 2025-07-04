@@ -1,0 +1,12 @@
+name: ISSS608-ProjectShiny
+title: ISSS608-ProjectShiny
+username: calvintansh
+account: calvintansh
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15032806
+bundleId: 10565105
+url: https://calvintansh.shinyapps.io/ISSS608-ProjectShiny/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
