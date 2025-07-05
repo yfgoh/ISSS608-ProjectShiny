@@ -548,6 +548,12 @@ ui <- navbarPage(
                       )
              )
            )
+  ),
+  navbarMenu("User Guide",
+             tabPanel(
+               a("Open PDF", href = "https://isss608-vaaproject.netlify.app/Project/User_Guide.pdf",
+                 target = "_blank", style = "color: black; text-decoration: none;")
+             )
   )
 )
   
