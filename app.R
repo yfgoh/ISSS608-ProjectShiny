@@ -138,7 +138,7 @@ ui <- navbarPage(
                         mainPanel(
                           br(),
                           h5("Who has Sailor Shift collaborated with and directly or indirectly influenced?"),
-                          h6("Hover your mouse over the nodes below to learn more about her collaborators"),
+                          h6("Hover your mouse over the nodes below to learn more"),
                           withSpinner(girafeOutput("collabInfluenceNetwork", width = "100%", height = "600px")),
                           tags$hr(),
                           htmlOutput("insight_1b")
@@ -518,7 +518,7 @@ ui <- navbarPage(
                         mainPanel(
                           br(),
                           uiOutput("dynamic_title_1b"),
-                          h6("Hover your mouse over the nodes below to learn more about the collaborators"),
+                          h6("Hover your mouse over the nodes below to learn more"),
                           withSpinner(girafeOutput("explore_3", width = "100%", height = "600px"))
                         )
                       )
